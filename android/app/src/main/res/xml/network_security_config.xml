@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Firebase, Google Sign-In, and every API EduSphere talks to use HTTPS,
+  so cleartext traffic is disabled by default (see
+  android:usesCleartextTraffic="false" in AndroidManifest.xml).
+
+  If you ever need to hit a local dev server over plain HTTP (e.g. an
+  emulator on 10.0.2.2 or a Termux-hosted service on your LAN), add a
+  <domain-config> block here scoped to that host only — do not disable
+  cleartextTrafficPermitted globally.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+
+    <!-- Example for local development only — uncomment and edit if needed:
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+    -->
+</network-security-config>

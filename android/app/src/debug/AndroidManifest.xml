@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The INTERNET permission is required for development. Specifying it in
+         this debug-only manifest ensures it is not accidentally set in the
+         main manifest for the release version of the app (it already is
+         above, deliberately, since this app is network-backed by Firebase —
+         this file is kept for parity with the standard Flutter template and
+         future debug-only overrides). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+</manifest>

@@ -1,0 +1,72 @@
+name: edusphere
+description: "EduSphere — Learn. Connect. Succeed. A premium educational ecosystem."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # State management
+  provider: ^6.1.2
+
+  # Firebase
+  firebase_core: ^2.31.0
+  firebase_auth: ^4.19.5
+  cloud_firestore: ^4.17.3
+  firebase_storage: ^11.7.4
+  firebase_messaging: ^14.9.2
+  google_sign_in: ^6.2.1
+
+  # UI / UX
+  google_fonts: ^6.2.1
+  smooth_page_indicator: ^1.1.0
+
+  # Stage 3.5 — Learning Materials Module: native file picker for the
+  # admin uploader (PDF/video/image/audio/document/presentation/zip).
+  file_picker: ^8.1.2
+
+  # Utilities
+  shared_preferences: ^2.2.3
+  equatable: ^2.0.5
+  url_launcher: ^6.3.0
+  connectivity_plus: ^6.0.5
+  logger: ^2.4.0
+  flutter_secure_storage: ^9.2.2
+  crypto: ^3.0.5
+  mime: ^1.0.5
+  uuid: ^4.4.0
+  package_info_plus: ^8.0.0
+  device_info_plus: ^10.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # NOTE: google_fonts fetches Poppins at runtime by default.
+  # For offline/production builds, download the Poppins .ttf files
+  # into assets/fonts/ and uncomment the block below, then switch
+  # theme/app_text_styles.dart from GoogleFonts.poppins(...) to the
+  # bundled 'Poppins' font family — see README.md.
+  #
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Poppins-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700
+
+  assets:
+    - assets/images/

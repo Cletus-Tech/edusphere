@@ -1,0 +1,21 @@
+// This is a generated file; do not edit or check into version control.
+// It is recreated by `flutter pub get` / `flutter build ios`, which reads
+// paths from your local Flutter SDK installation and pubspec.yaml.
+//
+// Placeholder values below let Xcode open the project before the first
+// `flutter pub get` has run. Run that command and this file will be
+// overwritten with real values (FLUTTER_ROOT, FLUTTER_APPLICATION_PATH,
+// FLUTTER_TARGET, build mode flags, etc).
+FLUTTER_ROOT=/path/to/flutter
+FLUTTER_APPLICATION_PATH=/path/to/edusphere
+COCOAPODS_PARALLEL_CODE_SIGN=true
+FLUTTER_TARGET=lib/main.dart
+FLUTTER_BUILD_DIR=build
+FLUTTER_BUILD_NAME=1.0.0
+FLUTTER_BUILD_NUMBER=1
+EXCLUDED_ARCHS[sdk=iphonesimulator*]=i386
+EXCLUDED_ARCHS[sdk=iphoneos*]=armv7
+DART_OBFUSCATION=false
+TRACK_WIDGET_CREATION=true
+TREE_SHAKE_ICONS=false
+PACKAGE_CONFIG=.dart_tool/package_config.json

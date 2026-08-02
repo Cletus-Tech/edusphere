@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "857282447466",
+    "project_id": "edusphere-ab1d1",
+    "storage_bucket": "edusphere-ab1d1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:857282447466:android:09ba229605d5ff0ca56213",
+        "android_client_info": {
+          "package_name": "com.cletustech.edusphere"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3antQmwf0cUcv8KL3FSIxNzvKHUWhwGo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

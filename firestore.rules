@@ -1,0 +1,195 @@
+rules_version = '2';
+
+// ---------------------------------------------------------------------
+// EduSphere — Firestore Security Rules (Stage 1.2 template)
+//
+// This mirrors lib/core/enums/user_role.dart and lib/core/constants/
+// app_constants.dart. If a collection name or role changes there, it
+// must change here too, and vice versa — they are the same schema
+// expressed in two languages.
+//
+// This is a template to review and deploy via the Firebase Console /
+// CLI (`firebase deploy --only firestore:rules`). It is NOT auto-applied
+// by the Flutter app.
+// ---------------------------------------------------------------------
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Helpers ------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(uid()));
+    }
+
+    function hasRole(role) {
+      return isSignedIn() &&
+        userDoc().data.roles is list &&
+        role in userDoc().data.roles;
+    }
+
+    function isSuperAdmin() { return hasRole('superAdmin'); }
+    function isAdmin() { return isSuperAdmin() || hasRole('admin'); }
+    function isInstitutionAdmin() { return isAdmin() || hasRole('institutionAdmin'); }
+    function isModerator() { return isAdmin() || hasRole('moderator'); }
+    function isStaff() {
+      return isAdmin() || hasRole('institutionAdmin') || hasRole('lecturer') ||
+        hasRole('teacher') || hasRole('contentCreator') || hasRole('moderator');
+    }
+
+    function isOwner(resourceUid) {
+      return isSignedIn() && uid() == resourceUid;
+    }
+
+    function notSuspended() {
+      return isSignedIn() && userDoc().data.isSuspended != true;
+    }
+
+    // ---- users ----------------------------------------------------------
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      // Users may edit their own profile but never their own `roles` or
+      // `isVerified`/`isSuspended` fields — only staff can do that.
+      allow update: if isOwner(userId) &&
+        request.resource.data.roles == resource.data.roles &&
+        request.resource.data.isVerified == resource.data.isVerified &&
+        request.resource.data.isSuspended == resource.data.isSuspended
+        || isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---- institutions & academic tree -----------------------------------
+    match /institutions/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /faculties/{id}    { allow read: if true; allow write: if isInstitutionAdmin(); }
+    match /departments/{id}  { allow read: if true; allow write: if isInstitutionAdmin(); }
+    match /levels/{id}       { allow read: if true; allow write: if isInstitutionAdmin(); }
+    match /semesters/{id}    { allow read: if true; allow write: if isInstitutionAdmin(); }
+
+    // ---- courses, subjects, categories -----------------------------------
+    match /courses/{id}    { allow read: if true; allow write: if isStaff(); }
+    match /subjects/{id}   { allow read: if true; allow write: if isStaff(); }
+    match /categories/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // ---- learning content (DEPRECATED — see LearningContentModel's ------
+    // doc comment; kept read-only-from-new-code during Stage 3.5's
+    // migration to learning_materials below) ------------------------------
+    match /learning_content/{id} {
+      allow read: if notSuspended();
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    // ---- learning materials (Stage 3.5 — official system) ---------------
+    // Students may read a document only if it's actually published and
+    // not soft-deleted; staff can read everything (drafts, scheduled,
+    // archived) so the Admin CMS list works. `migratedTo` writes from
+    // LearningContentMigrationService land on `learning_content` above,
+    // not here, so no special-case is needed in this match block.
+    match /learning_materials/{id} {
+      allow read: if isStaff() ||
+        (notSuspended() && resource.data.status == 'published' && resource.data.isDeleted != true);
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    // ---- exams & questions -----------------------------------------
+    match /exams/{id} {
+      allow read: if notSuspended();
+      allow write: if isStaff();
+    }
+    match /questions/{id} {
+      allow read: if notSuspended();
+      allow write: if isStaff();
+    }
+
+    // ---- community --------------------------------------------------
+    match /communities/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    match /posts/{id} {
+      allow read: if notSuspended();
+      allow create: if isOwner(request.resource.data.authorId) && notSuspended();
+      allow update: if (isOwner(resource.data.authorId) && notSuspended()) || isModerator();
+      allow delete: if isOwner(resource.data.authorId) || isModerator();
+    }
+
+    match /comments/{id} {
+      allow read: if notSuspended();
+      allow create: if isOwner(request.resource.data.authorId) && notSuspended();
+      allow update, delete: if isOwner(resource.data.authorId) || isModerator();
+    }
+
+    match /reactions/{id} {
+      allow read: if notSuspended();
+      allow write: if isOwner(request.resource.data.uid) && notSuspended();
+    }
+
+    match /bookmarks/{id} {
+      allow read, write: if isOwner(resource.data.uid) || isOwner(request.resource.data.uid);
+    }
+
+    // ---- engagement ---------------------------------------------------
+    match /notifications/{id} {
+      allow read: if isOwner(resource.data.uid);
+      allow write: if isAdmin(); // notifications are system/staff-authored
+    }
+    match /badges/{id}       { allow read: if true; allow write: if isAdmin(); }
+    match /achievements/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /leaderboard/{id}  { allow read: if true; allow write: if isAdmin(); }
+
+    // ---- AI, moderation, analytics -------------------------------------
+    match /ai_history/{id} {
+      allow read, create: if isOwner(request.resource.data.uid) || isOwner(resource.data.uid);
+      allow update, delete: if isAdmin();
+    }
+    match /reports/{id} {
+      allow create: if isOwner(request.resource.data.reportedBy);
+      allow read, update, delete: if isModerator();
+    }
+    match /analytics/{id} {
+      allow read: if isAdmin();
+      allow write: if false; // written only by trusted backend (Cloud Functions)
+    }
+
+    // ---- remote configuration (EduSphere Control Center) ----------------
+    match /settings/{id}      { allow read: if true; allow write: if isSuperAdmin(); }
+    match /banners/{id}       { allow read: if true; allow write: if isAdmin(); }
+    match /feature_flags/{id} { allow read: if true; allow write: if isSuperAdmin(); }
+
+    // ---- contact center & payment center (Stage 1.3) --------------------
+    // Public read so unauthenticated users can still reach support/
+    // admissions/emergency contacts and see how to pay before logging in.
+    // Payment account details (account numbers, gateway keys) only ever
+    // live in fields writable by admins, never by end users.
+    match /contacts/{id}        { allow read: if true; allow write: if isAdmin(); }
+    match /payment_methods/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // ---- upload engine history (Stage 1.3) -------------------------------
+    match /upload_history/{id} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow create: if isOwner(request.resource.data.uid);
+      allow update: if isOwner(resource.data.uid) || isAdmin();
+      allow delete: if isOwner(resource.data.uid) || isAdmin();
+    }
+
+    // ---- audit trail (Stage 3.6.1) ---------------------------------------
+    // Write-once: no update/delete, ever — an editable audit trail isn't
+    // one. `create` requires the signed-in uid to match the entry's own
+    // `userId` (AuditLogService always self-attributes), which means a
+    // failed-login attempt (no session yet) cannot write an entry here —
+    // documented as a known limitation in STAGE_3.6.2_CHANGELOG.md.
+    match /audit_logs/{id} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn() && request.resource.data.userId == uid();
+      allow update, delete: if false;
+    }
+  }
+}

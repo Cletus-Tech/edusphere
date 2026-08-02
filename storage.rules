@@ -1,0 +1,75 @@
+rules_version = '2';
+
+// ---------------------------------------------------------------------
+// EduSphere — Cloud Storage Security Rules (Stage 1.2 template)
+// Mirrors lib/core/constants/storage_paths.dart. Deploy via
+// `firebase deploy --only storage`.
+// ---------------------------------------------------------------------
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Firestore role lookups aren't available in Storage rules directly,
+    // so staff/admin write access for shared folders (institutions,
+    // notes, videos, banners, etc.) should be granted through a custom
+    // claim (e.g. `request.auth.token.role == 'admin'`) set by a Cloud
+    // Function when a user's Firestore role changes — not evaluated
+    // client-side.
+    function isStaffClaim() {
+      return isSignedIn() &&
+        request.auth.token.role in ['admin', 'superAdmin', 'institutionAdmin', 'lecturer', 'teacher', 'contentCreator'];
+    }
+
+    match /users/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+
+    match /avatars/{userId}.jpg {
+      allow read: if true;
+      allow write: if isOwner(userId);
+    }
+
+    match /institutions/{allPaths=**} { allow read: if true; allow write: if isStaffClaim(); }
+    match /notes/{allPaths=**}        { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    match /videos/{allPaths=**}       { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    match /documents/{allPaths=**}    { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    match /assignments/{allPaths=**}  { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    // DEPRECATED — see StoragePaths' Stage 3.5 doc comment; kept
+    // read-only-from-new-code during the migration to
+    // learning_materials below.
+    match /learning_content/{allPaths=**} { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+
+    // Stage 3.5 — Learning Materials Module (official system).
+    match /learning_materials/{allPaths=**} { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    match /images/{allPaths=**}       { allow read: if true; allow write: if isSignedIn(); }
+    match /banners/{allPaths=**}      { allow read: if true; allow write: if isStaffClaim(); }
+
+    match /community/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    match /certificates/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId) || isStaffClaim();
+      allow write: if isStaffClaim();
+    }
+
+    match /downloads/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /marketplace/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isStaffClaim();
+    }
+  }
+}

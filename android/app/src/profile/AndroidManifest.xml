@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The INTERNET permission is required for profile-mode builds so that
+         `flutter run --profile` and DevTools can attach over the network. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+</manifest>

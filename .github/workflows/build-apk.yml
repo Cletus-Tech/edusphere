@@ -16,23 +16,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
-
-      - name: Generate wrapper jar in a scratch folder
-        run: |
-          mkdir -p /tmp/gw && cd /tmp/gw
-          gradle wrapper --gradle-version 8.7
-          cp gradlew "$GITHUB_WORKSPACE/android/gradlew"
-          cp gradlew.bat "$GITHUB_WORKSPACE/android/gradlew.bat"
-          cp gradle/wrapper/gradle-wrapper.jar "$GITHUB_WORKSPACE/android/gradle/wrapper/gradle-wrapper.jar"
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.0'
           channel: 'stable'
+
+      - name: Remove incomplete gradle wrapper so Flutter regenerates it
+        run: rm -f android/gradlew android/gradlew.bat android/gradle/wrapper/gradle-wrapper.jar
 
       - run: flutter pub get
 

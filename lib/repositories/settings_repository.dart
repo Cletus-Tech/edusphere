@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/constants/app_constants.dart';
 import '../models/app_settings_models.dart';
+import '../services/audit/audit_log_service.dart';
 import 'base_repository.dart';
 
 class FeatureFlagRepository extends BaseRepository<FeatureFlagModel> {
@@ -22,6 +23,33 @@ class BannerRepository extends BaseRepository<BannerModel> {
 
   Stream<List<BannerModel>> watchActive() {
     return streamCollection(query: (q) => q.where('isActive', isEqualTo: true).orderBy('order'));
+  }
+
+  /// All banners (active or not) — the admin App Settings screen needs
+  /// to show/manage disabled ones too, unlike the home screen's
+  /// `watchActive`.
+  Stream<List<BannerModel>> watchAllForAdmin() {
+    return streamCollection(query: (q) => q.orderBy('order'));
+  }
+
+  Future<void> saveBanner(BannerModel banner, {BannerModel? previous}) async {
+    await save(banner);
+    AuditLogService.instance.logSettingsChange(
+      targetId: banner.bannerId,
+      targetTitle: banner.title ?? banner.bannerId,
+      previousValues: previous?.toMap(),
+      newValues: banner.toMap(),
+    );
+  }
+
+  Future<void> removeBanner(BannerModel banner) async {
+    await delete(banner.bannerId);
+    AuditLogService.instance.logSettingsChange(
+      targetId: banner.bannerId,
+      targetTitle: banner.title ?? banner.bannerId,
+      previousValues: banner.toMap(),
+      newValues: null,
+    );
   }
 }
 
@@ -67,8 +95,15 @@ class AppSettingsRepository {
         );
   }
 
-  Future<void> saveAppConfig(AppConfigModel model) =>
-      _settings.doc(AppConstants.appSettingsDoc).set(model.toMap(), SetOptions(merge: true));
+  Future<void> saveAppConfig(AppConfigModel model, {AppConfigModel? previous}) async {
+    await _settings.doc(AppConstants.appSettingsDoc).set(model.toMap(), SetOptions(merge: true));
+    AuditLogService.instance.logSettingsChange(
+      targetId: AppConstants.appSettingsDoc,
+      targetTitle: 'App Settings',
+      previousValues: previous?.toMap(),
+      newValues: model.toMap(),
+    );
+  }
 
   Stream<UploadSettingsModel> watchUploadSettings() {
     return _settings.doc(AppConstants.uploadSettingsDoc).snapshots().map(
@@ -78,7 +113,13 @@ class AppSettingsRepository {
         );
   }
 
-  Future<void> saveUploadSettings(UploadSettingsModel model) => _settings
-      .doc(AppConstants.uploadSettingsDoc)
-      .set(model.toMap(), SetOptions(merge: true));
+  Future<void> saveUploadSettings(UploadSettingsModel model, {UploadSettingsModel? previous}) async {
+    await _settings.doc(AppConstants.uploadSettingsDoc).set(model.toMap(), SetOptions(merge: true));
+    AuditLogService.instance.logSettingsChange(
+      targetId: AppConstants.uploadSettingsDoc,
+      targetTitle: 'Upload Settings',
+      previousValues: previous?.toMap(),
+      newValues: model.toMap(),
+    );
+  }
 }

@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../shared/widgets/custom_card.dart';
-import '../../shared/widgets/feature_placeholder.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import 'app_settings/admin_app_settings_screen.dart';
 import 'audit_log/audit_log_screen.dart';
 import 'learning_materials/admin_learning_materials_screen.dart';
+import 'moderation/moderation_screen.dart';
+import 'users/admin_users_screen.dart';
 
 /// Admin Dashboard entry point (Stage 3.5). Nothing in this app builds an
 /// "Admin Dashboard" before this stage — the spec's "Create a new
 /// Learning Materials section inside the Admin Dashboard" is read as: the
 /// dashboard shell is new too, and it is built as a real extension point
 /// (a grid of modules) rather than a single-purpose screen, so a later
-/// stage can drop in "Users & Roles" or "Reports" as another tile without
-/// touching this one.
+/// stage can drop in new modules as another tile without touching this
+/// one.
 ///
-/// Only [_AdminModuleTile] for Learning Materials is fully wired in this
-/// stage; the others navigate to [FeaturePlaceholder] (the same "coming
-/// soon" pattern Stage 1 already uses for not-yet-built tabs) so the
-/// dashboard reads as a genuine hub, not a dead end, without overbuilding
-/// modules the spec didn't ask for.
+/// Stage 2 wires every tile to a real screen — Learning Materials, Audit
+/// Log, Moderation & Reports, Users & Roles, and now App Settings.
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
@@ -64,18 +63,7 @@ class AdminDashboardScreen extends StatelessWidget {
             description: 'Review flagged community posts and comments.',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => Scaffold(
-                  appBar: AppBar(title: const Text('Moderation & Reports')),
-                  body: const FeaturePlaceholder(
-                    icon: Icons.flag_rounded,
-                    title: 'Moderation & Reports',
-                    description: 'A dedicated moderation queue is coming to the Admin Dashboard soon.',
-                    accent: AppColors.highlightOrange,
-                    upcoming: ['Report queue', 'Bulk actions', 'Audit log'],
-                  ),
-                ),
-              ),
+              MaterialPageRoute(builder: (_) => const ModerationScreen()),
             ),
           ),
           const SizedBox(height: 12),
@@ -86,18 +74,7 @@ class AdminDashboardScreen extends StatelessWidget {
             description: 'Manage accounts, roles, and institution access.',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => Scaffold(
-                  appBar: AppBar(title: const Text('Users & Roles')),
-                  body: const FeaturePlaceholder(
-                    icon: Icons.manage_accounts_rounded,
-                    title: 'Users & Roles',
-                    description: 'User and role management is coming to the Admin Dashboard soon.',
-                    accent: AppColors.secondaryIndigo,
-                    upcoming: ['Role assignment', 'Institution access', 'Account suspension'],
-                  ),
-                ),
-              ),
+              MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
             ),
           ),
           const SizedBox(height: 12),
@@ -108,18 +85,7 @@ class AdminDashboardScreen extends StatelessWidget {
             description: 'Feature flags, banners, and upload limits.',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => Scaffold(
-                  appBar: AppBar(title: const Text('App Settings')),
-                  body: const FeaturePlaceholder(
-                    icon: Icons.settings_suggest_rounded,
-                    title: 'App Settings',
-                    description: 'A dedicated settings screen is coming to the Admin Dashboard soon.',
-                    accent: AppColors.accentGreen,
-                    upcoming: ['Feature flags', 'Banners', 'Upload limits'],
-                  ),
-                ),
-              ),
+              MaterialPageRoute(builder: (_) => const AdminAppSettingsScreen()),
             ),
           ),
         ],

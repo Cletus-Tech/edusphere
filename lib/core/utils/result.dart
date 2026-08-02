@@ -22,6 +22,16 @@ class Failure<T> extends Result<T> {
   const Failure(this.message);
 }
 
+/// Convenience for read-only call sites that just want the value (or
+/// null on failure) without a full switch — e.g. a best-effort preview
+/// where showing "not found" and "failed to load" the same way is fine.
+extension ResultDataOrNull<T> on Result<T> {
+  T? get dataOrNull => switch (this) {
+        Success(data: final d) => d,
+        Failure() => null,
+      };
+}
+
 /// Converts common Firebase/network exceptions into messages a user can
 /// actually read, instead of surfacing raw exception strings.
 String friendlyErrorMessage(Object error) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/utils/result.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/utils/validators.dart';
 import '../../../services/firebase/auth_service.dart';

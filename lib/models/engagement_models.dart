@@ -47,6 +47,17 @@ class NotificationModel extends Equatable implements FirestoreModel {
         'createdAt': FirestoreConvert.toTimestamp(createdAt),
       };
 
+  NotificationModel copyWith({bool? isRead}) => NotificationModel(
+        notificationId: notificationId,
+        uid: uid,
+        title: title,
+        body: body,
+        type: type,
+        deepLink: deepLink,
+        isRead: isRead ?? this.isRead,
+        createdAt: createdAt,
+      );
+
   @override
   String get id => notificationId;
 

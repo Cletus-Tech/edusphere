@@ -18,12 +18,14 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomeScreen(),
-    LearnScreen(),
-    CommunityScreen(),
-    AiTutorScreen(),
-    ProfileScreen(),
+  void _goToTab(int index) => setState(() => _currentIndex = index);
+
+  late final List<Widget> _pages = [
+    HomeScreen(onNavigateToTab: _goToTab),
+    const LearnScreen(),
+    const CommunityScreen(),
+    const AiTutorScreen(),
+    const ProfileScreen(),
   ];
 
   final List<_NavItem> _items = const [

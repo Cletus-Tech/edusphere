@@ -90,6 +90,16 @@ class ReportModel extends Equatable implements FirestoreModel {
         'createdAt': FirestoreConvert.toTimestamp(createdAt),
       };
 
+  ReportModel copyWith({String? status}) => ReportModel(
+        reportId: reportId,
+        reportedBy: reportedBy,
+        targetId: targetId,
+        targetType: targetType,
+        reason: reason,
+        status: status ?? this.status,
+        createdAt: createdAt,
+      );
+
   @override
   String get id => reportId;
 

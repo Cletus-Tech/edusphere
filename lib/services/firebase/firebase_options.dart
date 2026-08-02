@@ -38,13 +38,12 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REPLACE_ME',
-    appId: 'REPLACE_ME',
-    messagingSenderId: 'REPLACE_ME',
-    projectId: 'edusphere-app',
-    storageBucket: 'edusphere-app.appspot.com',
+    apiKey: 'AIzaSyC3antQmwf0cUcv8KL3FSIxNzvKHUWhwGo',
+    appId: '1:857282447466:android:09ba229605d5ff0ca56213',
+    messagingSenderId: '857282447466',
+    projectId: 'edusphere-ab1d1',
+    storageBucket: 'edusphere-ab1d1.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'REPLACE_ME',
     appId: 'REPLACE_ME',

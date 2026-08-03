@@ -100,17 +100,28 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Post'),
+        title: Container(
+          color: Colors.red,
+          padding: const EdgeInsets.all(4),
+          child: const Text(
+            'DEBUG: New Post',
+            style: TextStyle(color: Colors.yellow, fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Center(
-              child: PrimaryButton(label: 'Post', isLoading: _posting, onPressed: _submit),
+              child: Container(
+                color: Colors.red,
+                padding: const EdgeInsets.all(4),
+                child: PrimaryButton(label: 'DEBUG POST', isLoading: _posting, onPressed: _submit),
+              ),
             ),
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

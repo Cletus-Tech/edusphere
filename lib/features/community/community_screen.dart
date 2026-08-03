@@ -54,9 +54,14 @@ class CommunityScreen extends StatelessWidget {
         backgroundColor: AppColors.secondaryIndigo,
         icon: const Icon(Icons.edit_rounded),
         label: const Text('Post'),
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CreatePostScreen()),
-        ),
+        onPressed: () async {
+          final published = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+          );
+          if (published == true && context.mounted) {
+            AppSnackbar.success(context, 'Post published successfully.');
+          }
+        },
       ),
     );
   }

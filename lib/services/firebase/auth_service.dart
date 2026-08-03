@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../core/constants/app_constants.dart';
-import '../../core/utils/result.dart';
+class '../../core/utils/result.dart';
 import '../../models/user_model.dart';
 import '../audit/audit_log_service.dart';
 import 'firestore_service.dart';

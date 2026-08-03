@@ -17,15 +17,26 @@ service firebase.storage {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Firestore role lookups aren't available in Storage rules directly,
-    // so staff/admin write access for shared folders (institutions,
-    // notes, videos, banners, etc.) should be granted through a custom
-    // claim (e.g. `request.auth.token.role == 'admin'`) set by a Cloud
-    // Function when a user's Firestore role changes — not evaluated
-    // client-side.
-    function isStaffClaim() {
+    // Stage 3.6.3 fix — the previous version of this function checked
+    // request.auth.token.role, an Auth custom claim that nothing in this
+    // project (no Cloud Function) ever set, so it evaluated false for
+    // every user, including superAdmin, and silently denied every
+    // staff-gated upload (banners, notes, videos, learning_materials,
+    // etc.). Storage Rules can read Firestore directly via
+    // firestore.get()/firestore.exists() (cross-service Rules, GA since
+    // 2022), so this now mirrors firestore.rules' hasRole()/isStaff()
+    // exactly, off the same `users/{uid}.roles` array — no custom claim
+    // or Cloud Function required. Per Firebase's docs, Storage Rules may
+    // read at most 2 unique Firestore documents per evaluation; repeated
+    // calls to this function within one request all hit the same
+    // users/{uid} doc, which is cached, so this stays within that limit
+    // no matter how many isStaffFirestore() calls a single rule chain
+    // makes.
+    function isStaffFirestore() {
       return isSignedIn() &&
-        request.auth.token.role in ['admin', 'superAdmin', 'institutionAdmin', 'lecturer', 'teacher', 'contentCreator'];
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.roles.hasAny(
+          ['admin', 'superAdmin', 'institutionAdmin', 'lecturer', 'teacher', 'contentCreator']
+        );
     }
 
     match /users/{userId}/{allPaths=**} {
@@ -38,20 +49,20 @@ service firebase.storage {
       allow write: if isOwner(userId);
     }
 
-    match /institutions/{allPaths=**} { allow read: if true; allow write: if isStaffClaim(); }
-    match /notes/{allPaths=**}        { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
-    match /videos/{allPaths=**}       { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
-    match /documents/{allPaths=**}    { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
-    match /assignments/{allPaths=**}  { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    match /institutions/{allPaths=**} { allow read: if true; allow write: if isStaffFirestore(); }
+    match /notes/{allPaths=**}        { allow read: if isSignedIn(); allow write: if isStaffFirestore(); }
+    match /videos/{allPaths=**}       { allow read: if isSignedIn(); allow write: if isStaffFirestore(); }
+    match /documents/{allPaths=**}    { allow read: if isSignedIn(); allow write: if isStaffFirestore(); }
+    match /assignments/{allPaths=**}  { allow read: if isSignedIn(); allow write: if isStaffFirestore(); }
     // DEPRECATED — see StoragePaths' Stage 3.5 doc comment; kept
     // read-only-from-new-code during the migration to
     // learning_materials below.
-    match /learning_content/{allPaths=**} { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    match /learning_content/{allPaths=**} { allow read: if isSignedIn(); allow write: if isStaffFirestore(); }
 
     // Stage 3.5 — Learning Materials Module (official system).
-    match /learning_materials/{allPaths=**} { allow read: if isSignedIn(); allow write: if isStaffClaim(); }
+    match /learning_materials/{allPaths=**} { allow read: if isSignedIn(); allow write: if isStaffFirestore(); }
     match /images/{allPaths=**}       { allow read: if true; allow write: if isSignedIn(); }
-    match /banners/{allPaths=**}      { allow read: if true; allow write: if isStaffClaim(); }
+    match /banners/{allPaths=**}      { allow read: if true; allow write: if isStaffFirestore(); }
 
     match /community/{allPaths=**} {
       allow read: if isSignedIn();
@@ -59,8 +70,8 @@ service firebase.storage {
     }
 
     match /certificates/{userId}/{allPaths=**} {
-      allow read: if isOwner(userId) || isStaffClaim();
-      allow write: if isStaffClaim();
+      allow read: if isOwner(userId) || isStaffFirestore();
+      allow write: if isStaffFirestore();
     }
 
     match /downloads/{userId}/{allPaths=**} {
@@ -69,7 +80,7 @@ service firebase.storage {
 
     match /marketplace/{allPaths=**} {
       allow read: if isSignedIn();
-      allow write: if isStaffClaim();
+      allow write: if isStaffFirestore();
     }
   }
 }

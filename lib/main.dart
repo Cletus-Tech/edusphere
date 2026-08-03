@@ -18,19 +18,6 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await MessagingService().initialize();
-
-    // Stage 1.2: start listening for remote configuration. These are
-    // backend/data-layer only — no new screens are rendered from them
-    // yet, but the dashboard, branding, and feature-gating repositories
-    // stay warm from app launch so future UI work can just read them.
-    FeatureFlagService.instance.start();
-    BrandingService.instance.start();
-    DashboardConfigService.instance.start();
-    // Stage 3.5: the Learning Materials uploader (and any other
-    // feature queuing through UploadEngine) needs live remote size/type
-    // limits from launch, not just when a screen happens to open one.
-    UploadEngine.instance.start();
   } catch (e) {
     // Stage 1 safeguard: don't let a missing/placeholder Firebase config
     // crash the whole app during design review — log and continue so
@@ -46,4 +33,22 @@ Future<void> main() async {
       child: const EduSphereApp(),
     ),
   );
+
+  // Stage 3.6.6: these don't need to block the first frame — they're
+  // network-dependent (FCM token fetch, remote config) and were
+  // previously awaited before runApp(), which held the splash screen
+  // behind them and caused a multi-second blank-screen launch delay.
+  // The splash screen has its own fixed display duration, so these
+  // still have time to finish warming up behind it.
+  try {
+    await MessagingService().initialize();
+    FeatureFlagService.instance.start();
+    BrandingService.instance.start();
+    DashboardConfigService.instance.start();
+    UploadEngine.instance.start();
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('Post-launch service init failed: $e');
+    }
+  }
 }

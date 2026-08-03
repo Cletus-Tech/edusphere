@@ -376,7 +376,14 @@ class _RecentMaterials extends StatelessWidget {
       stream: LearningMaterialRepository().watchRecentlyAdded(limit: 3),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const SizedBox(
+if (snapshot.hasError) {
+          return CustomCard(
+            child: Text(
+              'Could not load recent materials: ${snapshot.error}',
+              style: AppTextStyles.bodyMedium(bodyColor),
+            ),
+          );
+        }          return const SizedBox(
             height: 80,
             child: Center(child: CircularProgressIndicator(strokeWidth: 2.6)),
           );

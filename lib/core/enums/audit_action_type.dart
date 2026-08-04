@@ -129,6 +129,11 @@ class AuditModules {
   static const String storage = 'storage';
   static const String branding = 'branding';
   static const String featureFlags = 'feature_flags';
+  // Stage 4.3 — Academic Structure & Education Hierarchy.
+  static const String academicStructure = 'academic_structure';
+  // Stage 4.5 — Exam prep boards (WAEC now; NECO/JAMB reuse this same
+  // module id rather than getting one each).
+  static const String examPrep = 'exam_prep';
 
   static const List<String> all = [
     learningMaterials,
@@ -140,6 +145,8 @@ class AuditModules {
     storage,
     branding,
     featureFlags,
+    academicStructure,
+    examPrep,
   ];
 
   static String label(String id) => switch (id) {
@@ -152,6 +159,8 @@ class AuditModules {
         storage => 'Storage',
         branding => 'Branding',
         featureFlags => 'Feature Flags',
+        academicStructure => 'Academic Structure',
+        examPrep => 'Exam Prep',
         _ when id.isEmpty => 'General',
         _ => id
             .split('_')

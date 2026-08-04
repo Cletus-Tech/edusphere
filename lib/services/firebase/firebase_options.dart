@@ -3,15 +3,18 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// PLACEHOLDER — this file must be regenerated for your real Firebase
-/// project before running the app. Do NOT ship these dummy keys.
+/// Stage 2 audit note: the `android` block below now mirrors the real
+/// `android/app/google-services.json` (project `edusphere-ab1d1`), so
+/// Android builds initialize against the real Firebase project.
 ///
-/// From the project root, run:
+/// `ios` and `web` are still PLACEHOLDER — no `GoogleService-Info.plist`
+/// (iOS) or web app config was provided in this project, so those two
+/// blocks will fail to initialize until you run, from the project root:
 ///   dart pub global activate flutterfire_cli
 ///   flutterfire configure
 ///
-/// This will overwrite this file with real values for Android, iOS,
-/// and Web, wired to your Firebase project.
+/// This regenerates this file with real values for every platform you
+/// select. Do NOT ship the `ios`/`web` blocks below as-is.
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) return web;
@@ -44,6 +47,7 @@ class DefaultFirebaseOptions {
     projectId: 'edusphere-ab1d1',
     storageBucket: 'edusphere-ab1d1.firebasestorage.app',
   );
+
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'REPLACE_ME',
     appId: 'REPLACE_ME',

@@ -3,7 +3,9 @@ import '../../shared/widgets/custom_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'app_settings/admin_app_settings_screen.dart';
+import 'academic_structure/academic_structure_screen.dart';
 import 'audit_log/audit_log_screen.dart';
+import 'exam_prep/subject_manager_screen.dart';
 import 'learning_materials/admin_learning_materials_screen.dart';
 import 'moderation/moderation_screen.dart';
 import 'users/admin_users_screen.dart';
@@ -34,6 +36,17 @@ class AdminDashboardScreen extends StatelessWidget {
           Text('Manage EduSphere content and moderation from one place.',
               style: AppTextStyles.bodyMedium(bodyColor)),
           const SizedBox(height: 20),
+          _AdminModuleTile(
+            icon: Icons.account_tree_rounded,
+            accent: AppColors.accentGreen,
+            title: 'Academic Structure',
+            description: 'Institutions, faculties, departments, levels, semesters, and courses.',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AcademicStructureScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
           _AdminModuleTile(
             icon: Icons.folder_copy_rounded,
             accent: AppColors.primaryBlue,
@@ -75,6 +88,34 @@ class AdminDashboardScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _AdminModuleTile(
+            icon: Icons.menu_book_rounded,
+            accent: AppColors.accentGreen,
+            title: 'WAEC Subjects',
+            description: 'Add and manage subjects for the WAEC module. Study materials, '
+                'syllabus, and past questions are managed from Learning Materials.',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SubjectManagerScreen(categoryId: 'waec', categoryLabel: 'WAEC'),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _AdminModuleTile(
+            icon: Icons.edit_document,
+            accent: AppColors.highlightOrange,
+            title: 'NECO Subjects',
+            description: 'Add and manage subjects for the NECO module. Study materials, '
+                'syllabus, and past questions are managed from Learning Materials.',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SubjectManagerScreen(categoryId: 'neco', categoryLabel: 'NECO'),
+              ),
             ),
           ),
           const SizedBox(height: 12),

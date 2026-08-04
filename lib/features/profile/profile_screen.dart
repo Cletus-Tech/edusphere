@@ -13,6 +13,7 @@ import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
 import '../admin/admin_dashboard_screen.dart';
+import 'academic_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -93,6 +94,15 @@ class ProfileScreen extends StatelessWidget {
                 const _ProfileTile(
                     icon: Icons.workspace_premium_outlined,
                     label: 'My Certificates'),
+                _divider(),
+                _ProfileTile(
+                  icon: Icons.account_tree_outlined,
+                  label: 'Academic Profile',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AcademicProfileScreen()),
+                  ),
+                ),
                 _divider(),
                 const _ProfileTile(
                     icon: Icons.help_outline_rounded,

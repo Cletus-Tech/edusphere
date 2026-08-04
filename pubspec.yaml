@@ -28,7 +28,7 @@ dependencies:
 
   # Stage 3.5 — Learning Materials Module: native file picker for the
   # admin uploader (PDF/video/image/audio/document/presentation/zip).
-  file_picker: ^8.0.7
+  file_picker: ^8.1.2
 
   # Utilities
   shared_preferences: ^2.2.3

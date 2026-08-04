@@ -15,6 +15,7 @@ import '../../shared/widgets/app_badge.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/search_field.dart';
 import '../../shared/widgets/section_header.dart';
+import '../../shared/widgets/state_views.dart';
 import '../learn/learning_materials/material_detail_screen.dart';
 import 'notifications_screen.dart';
 
@@ -41,21 +42,35 @@ class HomeScreen extends StatelessWidget {
   static const int _tabAiTutor = 3;
   static const int _tabProfile = 4;
 
-  /// Dashboard-card / quick-access keys that already have a real
-  /// destination in this app. Everything else (marketplace,
-  /// scholarships, parents_portal, professional_exams, cbt) has no
-  /// screen yet, so it's told to the user honestly instead of
-  /// pretending to navigate.
+  /// Dashboard-card / quick-access keys that map onto one of
+  /// [HomeShell]'s bottom-nav tabs. 'university' used to be aliased
+  /// here too (straight to the Learn tab) as a Stage 4.1 stand-in —
+  /// see [_routeForKey] instead now that Stage 4.4 built a real
+  /// University module. JAMB/WAEC/NECO resolve through [_routeForKey]
+  /// to their own honest placeholder screens.
   static const Map<String, int> _tabForKey = {
     'home': _tabHome,
     'learn': _tabLearn,
-    'university': _tabLearn,
-    'jamb': _tabLearn,
-    'waec': _tabLearn,
-    'neco': _tabLearn,
     'community': _tabCommunity,
     'ai_tutor': _tabAiTutor,
     'profile': _tabProfile,
+  };
+
+  /// Keys with a real top-level route (registered in [AppRoutes]) but no
+  /// bottom-nav tab of their own. 'cbt' has no dashboard tile yet, but
+  /// is included so an admin-configured card with key `cbt` (see
+  /// `FeatureKeys.cbt`) resolves here instead of the "not available
+  /// yet" fallback. 'university' is Stage 4.4's real University
+  /// Dashboard. Everything still absent from both maps — marketplace,
+  /// scholarships, parents_portal, professional_exams — has no screen
+  /// at all yet, so it's told to the user honestly instead of
+  /// pretending to navigate.
+  static const Map<String, String> _routeForKey = {
+    'jamb': AppRoutes.jamb,
+    'waec': AppRoutes.waec,
+    'neco': AppRoutes.neco,
+    'cbt': AppRoutes.cbt,
+    'university': AppRoutes.university,
   };
 
   static const List<(String, IconData, Color)> _fallbackQuickAccess = [
@@ -84,6 +99,11 @@ class HomeScreen extends StatelessWidget {
     final tab = _tabForKey[key];
     if (tab != null) {
       onNavigateToTab(tab);
+      return;
+    }
+    final route = _routeForKey[key];
+    if (route != null) {
+      Navigator.of(context).pushNamed(route);
       return;
     }
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -323,31 +343,36 @@ class _QuickAccessRow extends StatelessWidget {
                 deepLink = card.deepLink;
               }
 
-              return GestureDetector(
-                onTap: () => onTileTap(key, deepLink),
-                child: SizedBox(
-                  width: 78,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
+              return SizedBox(
+                width: 78,
+                child: Column(
+                  children: [
+                    Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      child: InkWell(
+                        onTap: () => onTileTap(key, deepLink),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
+                          child: Icon(icon, color: color),
                         ),
-                        child: Icon(icon, color: color),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        title,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bodySmall(bodyColor),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bodySmall(bodyColor),
+                    ),
+                  ],
                 ),
               );
             },
@@ -376,24 +401,18 @@ class _RecentMaterials extends StatelessWidget {
       stream: LearningMaterialRepository().watchRecentlyAdded(limit: 3),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-if (snapshot.hasError) {
-          return CustomCard(
-            child: Text(
-              'Could not load recent materials: ${snapshot.error}',
-              style: AppTextStyles.bodyMedium(bodyColor),
-            ),
-          );
-        }          return const SizedBox(
+          return const SizedBox(
             height: 80,
             child: Center(child: CircularProgressIndicator(strokeWidth: 2.6)),
           );
         }
         final materials = snapshot.data!;
         if (materials.isEmpty) {
-          return CustomCard(
-            child: Text(
-              'No learning materials have been published yet.',
-              style: AppTextStyles.bodyMedium(bodyColor),
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: EmptyView(
+              message: 'No learning materials have been published yet.',
+              icon: Icons.menu_book_outlined,
             ),
           );
         }

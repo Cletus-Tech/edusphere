@@ -109,6 +109,25 @@ class LearningMaterialRepository extends BaseRepository<LearningMaterialModel> {
     ).map((list) => list.where((m) => !m.isDeleted).toList());
   }
 
+  /// Stage 4.5 — recent materials across a *known set* of course/subject
+  /// ids (e.g. every WAEC subject), for a module-scoped "Recent
+  /// Activity" feed rather than the global [watchRecentlyAdded]. Empty
+  /// input returns an empty stream rather than an unfiltered query —
+  /// Firestore's `whereIn` also requires a non-empty list. Capped at 30
+  /// ids, Firestore's `whereIn` limit; callers with a larger set should
+  /// page or pre-filter before calling this.
+  Stream<List<LearningMaterialModel>> watchMaterialsForCourses(List<String> courseIds, {int limit = 10}) {
+    if (courseIds.isEmpty) return Stream.value(const []);
+    final ids = courseIds.take(30).toList();
+    return streamCollection(
+      limit: limit,
+      query: (q) => q
+          .where('status', isEqualTo: MaterialPublicationStatus.published.id)
+          .where('courseId', whereIn: ids)
+          .orderBy('createdAt', descending: true),
+    ).map((list) => list.where((m) => !m.isDeleted).toList());
+  }
+
   /// Bounded admin stream across every status (draft/scheduled/
   /// published/archived), including soft-deleted items so staff can
   /// still find and restore them. Deliberately uses a plain `limit`

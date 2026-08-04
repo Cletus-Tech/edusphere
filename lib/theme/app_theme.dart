@@ -60,7 +60,7 @@ class AppTheme {
       iconTheme: const IconThemeData(color: AppColors.textPrimary),
       titleTextStyle: AppTextStyles.headlineSmall(AppColors.textPrimary),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.surfaceWhite,
       elevation: 0,
       shape:
@@ -152,7 +152,7 @@ class AppTheme {
       iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
       titleTextStyle: AppTextStyles.headlineSmall(AppColors.textPrimaryDark),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.darkSurface,
       elevation: 0,
       shape:

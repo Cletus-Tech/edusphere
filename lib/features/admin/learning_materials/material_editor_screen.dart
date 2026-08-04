@@ -166,12 +166,21 @@ class _MaterialEditorScreenState extends State<MaterialEditorScreen> {
   }
 
   Future<void> _pickCourse() async {
-    final courses = await CourseRepository().getWhere(query: (q) => q, limit: 50);
+    // Stage 4.5: subjects (WAEC/NECO/JAMB) reuse CourseModel but live in
+    // a separate `subjects` collection — merged in here so admins can
+    // attach a material to a subject, not only a university course.
+    final coursesResult = await CourseRepository().getWhere(query: (q) => q, limit: 50);
+    final subjectsResult = await SubjectRepository().getWhere(query: (q) => q, limit: 50);
     if (!mounted) return;
-    final list = switch (courses) {
+    final courses = switch (coursesResult) {
       Success(data: final data) => data,
       Failure() => const <CourseModel>[],
     };
+    final subjects = switch (subjectsResult) {
+      Success(data: final data) => data,
+      Failure() => const <CourseModel>[],
+    };
+    final list = [...courses, ...subjects];
     final picked = await AppBottomSheet.show<CourseModel>(
       context,
       child: SizedBox(
@@ -179,16 +188,19 @@ class _MaterialEditorScreenState extends State<MaterialEditorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Select a Course', style: AppTextStyles.titleMedium(AppColors.textPrimary)),
+            Text('Select a Course or Subject', style: AppTextStyles.titleMedium(AppColors.textPrimary)),
             const SizedBox(height: 12),
             Expanded(
               child: list.isEmpty
-                  ? const EmptyView(message: 'No courses found yet.')
+                  ? const EmptyView(message: 'No courses or subjects found yet.')
                   : ListView.builder(
                       itemCount: list.length,
                       itemBuilder: (context, i) => ListTile(
                         title: Text(list[i].title),
-                        subtitle: Text(list[i].code),
+                        subtitle: Text(
+                          '${list[i].code.isEmpty ? "" : "${list[i].code} — "}'
+                          '${i < courses.length ? "Course" : "Subject"}',
+                        ),
                         onTap: () => Navigator.pop(context, list[i]),
                       ),
                     ),
@@ -324,7 +336,7 @@ class _MaterialEditorScreenState extends State<MaterialEditorScreen> {
           const SizedBox(height: 12),
           AppTextField(
             controller: _courseController,
-            hintText: 'Course (optional)',
+            hintText: 'Course or Subject (optional)',
             prefixIcon: Icons.menu_book_outlined,
           ),
           Align(

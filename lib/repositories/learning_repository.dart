@@ -4,6 +4,7 @@ import '../core/constants/storage_paths.dart';
 import '../core/enums/audit_action_type.dart';
 import '../core/utils/result.dart';
 import '../models/exam_model.dart';
+import '../models/exam_session_model.dart';
 import '../models/learning_content_model.dart';
 import '../services/audit/audit_log_service.dart';
 import '../services/firebase/storage_service.dart';
@@ -280,6 +281,80 @@ class ExamRepository extends BaseRepository<ExamModel> {
     return streamCollection(
       query: (q) => q.where('type', isEqualTo: typeId).where('isActive', isEqualTo: true),
     );
+  }
+}
+
+/// Stage 4.8A. Live, per-user, per-attempt session state — see
+/// [ExamSessionModel] for why this is a separate collection from
+/// `exam_attempts` rather than a status field on one document.
+class ExamSessionRepository extends BaseRepository<ExamSessionModel> {
+  ExamSessionRepository() : super(AppConstants.examSessionsCollection);
+
+  @override
+  ExamSessionModel fromMap(Map<String, dynamic> map, String id) => ExamSessionModel.fromMap(map, id);
+
+  /// The single most important query for "Resume interrupted exam":
+  /// is there already a non-terminal session for this user+exam? The
+  /// runner should call this before creating a new session, and resume
+  /// into whatever it finds instead.
+  Future<ExamSessionModel?> findResumableSession(String userId, String examId) async {
+    final result = await getWhere(
+      query: (q) => q
+          .where('userId', isEqualTo: userId)
+          .where('examId', isEqualTo: examId)
+          .where('status', whereIn: ['inProgress', 'paused']),
+      limit: 1,
+    );
+    return switch (result) {
+      Success(data: final data) => data.isEmpty ? null : data.first,
+      Failure() => null,
+    };
+  }
+
+  /// Every session a user could resume, across every exam — feeds a
+  /// "Continue where you left off" list.
+  Stream<List<ExamSessionModel>> watchResumableSessions(String userId) {
+    return streamCollection(
+      query: (q) => q.where('userId', isEqualTo: userId).where('status', whereIn: ['inProgress', 'paused']),
+    );
+  }
+
+  /// Auto-save: the runner calls this on every answer/flag/bookmark/
+  /// position change and on a periodic timer tick, not just at
+  /// submission. Deliberately a plain [save] passthrough (not a
+  /// partial-field update) so the session document — and therefore what
+  /// "resume" restores — always reflects exactly one consistent
+  /// in-memory state rather than a merge of partial writes.
+  Future<Result<void>> autoSave(ExamSessionModel session) =>
+      save(session.copyWith(lastSavedAt: DateTime.now()));
+}
+
+/// Stage 4.8A. The permanent, post-submission result record — see
+/// [ExamAttemptModel] for why this is separate from `exam_sessions`.
+class ExamAttemptRepository extends BaseRepository<ExamAttemptModel> {
+  ExamAttemptRepository() : super(AppConstants.examAttemptsCollection);
+
+  @override
+  ExamAttemptModel fromMap(Map<String, dynamic> map, String id) => ExamAttemptModel.fromMap(map, id);
+
+  /// Performance history — every attempt a user has ever submitted,
+  /// most recent first.
+  Stream<List<ExamAttemptModel>> watchHistoryForUser(String userId) {
+    return streamCollection(
+      query: (q) => q.where('userId', isEqualTo: userId).orderBy('submittedAt', descending: true),
+    );
+  }
+
+  /// Attempts on one specific exam by one user — what "attempt limit"
+  /// and "retake" checks both read.
+  Future<List<ExamAttemptModel>> fetchAttemptsForExam(String userId, String examId) async {
+    final result = await getWhere(
+      query: (q) => q.where('userId', isEqualTo: userId).where('examId', isEqualTo: examId),
+    );
+    return switch (result) {
+      Success(data: final data) => data,
+      Failure() => const [],
+    };
   }
 }
 

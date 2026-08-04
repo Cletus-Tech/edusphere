@@ -111,6 +111,22 @@ service cloud.firestore {
       allow write: if isStaff();
     }
 
+    // Stage 4.8A — CBT Engine Core: session (live, per-user, auto-saved
+    // in-progress attempt) and attempt (permanent submitted result).
+    // Owner-only on both — a student's in-progress answers and results
+    // are theirs alone to read/write; staff get read access for
+    // grading/support/analytics, never write (an attempt is meant to
+    // be an honest record of what the student actually submitted).
+    match /exam_sessions/{id} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == uid() || isStaff());
+      allow create: if isSignedIn() && request.resource.data.userId == uid();
+    }
+    match /exam_attempts/{id} {
+      allow read: if isSignedIn() && (resource.data.userId == uid() || isStaff());
+      allow create: if isSignedIn() && request.resource.data.userId == uid();
+      allow update, delete: if isAdmin();
+    }
+
     // ---- community --------------------------------------------------
     match /communities/{id} { allow read: if true; allow write: if isAdmin(); }
 

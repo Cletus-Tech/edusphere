@@ -105,23 +105,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               const Spacer(flex: 4),
-              // Stage 3.6.7 diagnostic: hardcoded build marker to prove
-              // beyond doubt whether a given install is actually running
-              // this commit. If this exact text isn't visible on-screen,
-              // the phone is not running this build — full stop.
-              Container(
-                color: Colors.red,
-                padding: const EdgeInsets.all(6),
-                child: const Text(
-                  'BUILD MARKER 3.6.7-DIAG',
-                  style: TextStyle(
-                    color: Colors.yellow,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
               FadeTransition(
                 opacity: _fadeIn,
                 child: Container(

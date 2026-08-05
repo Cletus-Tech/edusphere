@@ -30,8 +30,12 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(uid()));
     }
 
+    function profileExists() {
+      return exists(/databases/$(database)/documents/users/$(uid()));
+    }
+
     function hasRole(role) {
-      return isSignedIn() &&
+      return isSignedIn() && profileExists() &&
         userDoc().data.roles is list &&
         role in userDoc().data.roles;
     }
@@ -50,7 +54,8 @@ service cloud.firestore {
     }
 
     function notSuspended() {
-      return isSignedIn() && userDoc().data.isSuspended != true;
+      return isSignedIn() &&
+        (!profileExists() || userDoc().data.isSuspended != true);
     }
 
     // ---- users ----------------------------------------------------------

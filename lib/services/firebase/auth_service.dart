@@ -29,14 +29,10 @@ class AuthService {
         AuditLogService.instance.logFailedLogin(email: email.trim());
         return const Result.failure('Login failed. Please try again.');
       }
+      await ensureUserProfile(credential.user!);
       AuditLogService.instance.logLogin(uid: credential.user!.uid);
       return Result.success(credential.user!);
     } catch (e) {
-      // Stage 3.6.2 Part 2 — audit every failed sign-in. Per
-      // `firestore.rules`, this write only succeeds while some session
-      // is signed in (a wrong password on an already-authed device,
-      // etc.) — a fully unauthenticated attempt is silently dropped by
-      // AuditLogService's own error-safety, not a bug here.
       AuditLogService.instance.logFailedLogin(email: email.trim());
       return Result.failure(friendlyErrorMessage(e));
     }
@@ -64,16 +60,41 @@ class AuthService {
         email: email.trim(),
         createdAt: DateTime.now(),
       );
-      await _firestoreService.set(
+      final profileResult = await _firestoreService.set(
         collection: AppConstants.usersCollection,
         docId: user.uid,
         data: profile.toMap(),
       );
+      if (profileResult case Failure(:final message)) {
+        return Result.failure(
+          'Account created, but setting up your profile failed: $message',
+        );
+      }
 
       return Result.success(user);
     } catch (e) {
       return Result.failure(friendlyErrorMessage(e));
     }
+  }
+
+  Future<void> ensureUserProfile(User user) async {
+    final existing = await _firestoreService.getDoc(
+      collection: AppConstants.usersCollection,
+      docId: user.uid,
+    );
+    if (existing case Success(:final data) when data != null) return;
+
+    final profile = UserModel(
+      uid: user.uid,
+      fullName: user.displayName ?? '',
+      email: user.email ?? '',
+      createdAt: DateTime.now(),
+    );
+    await _firestoreService.set(
+      collection: AppConstants.usersCollection,
+      docId: user.uid,
+      data: profile.toMap(),
+    );
   }
 
   Future<Result<User>> signInWithGoogle() async {
@@ -93,7 +114,6 @@ class AuthService {
         return const Result.failure('Google sign-in failed.');
       }
 
-      // Create a Firestore profile the first time this Google user signs in.
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
         final profile = UserModel(
           uid: user.uid,
@@ -119,10 +139,6 @@ class AuthService {
   Future<Result<void>> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());
-      // Only attributable if some session happens to be signed in when
-      // this is requested (e.g. from an in-app "change email" flow) —
-      // the common "forgot password" case is unauthenticated, so this
-      // is best-effort per AuditLogService's own error-safety rules.
       final uid = currentUser?.uid;
       if (uid != null) {
         AuditLogService.instance.logPasswordResetRequested(uid: uid, email: email.trim());
@@ -133,10 +149,6 @@ class AuthService {
     }
   }
 
-  /// Stage 3.6.2 Part 2 addition — changes the signed-in user's password,
-  /// re-authenticating first since Firebase requires a recent sign-in for
-  /// this operation. Never logs the password itself, only that a change
-  /// happened.
   Future<Result<void>> changePassword({
     required String currentPassword,
     required String newPassword,

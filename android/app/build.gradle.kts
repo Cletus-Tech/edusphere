@@ -35,10 +35,20 @@ android {
     }
 
     signingConfigs {
-        // Debug signing is used for the release build below only so that
-        // `flutter run --release` / `flutter build apk` work out of the box.
-        // Replace with a real upload keystore before shipping to Play.
-        getByName("debug") {}
+        // A persistent, committed debug keystore — not the Gradle default,
+        // which GitHub Actions regenerates fresh on every run (a new,
+        // empty container each time), silently breaking Google Sign-In's
+        // SHA-1 registration on every single build. This keystore's
+        // credentials are the same well-known ones Android's own default
+        // debug keystore uses (alias "androiddebugkey", password
+        // "android") — that's intentional; debug keystores are never
+        // meant to be secret, only stable.
+        getByName("debug") {
+            storeFile = file("keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,19 +20,6 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await MessagingService().initialize();
-
-    // Stage 1.2: start listening for remote configuration. These are
-    // backend/data-layer only — no new screens are rendered from them
-    // yet, but the dashboard, branding, and feature-gating repositories
-    // stay warm from app launch so future UI work can just read them.
-    FeatureFlagService.instance.start();
-    BrandingService.instance.start();
-    DashboardConfigService.instance.start();
-    // Stage 3.5: the Learning Materials uploader (and any other
-    // feature queuing through UploadEngine) needs live remote size/type
-    // limits from launch, not just when a screen happens to open one.
-    UploadEngine.instance.start();
   } catch (e) {
     // Stage 1 safeguard: don't let a missing/placeholder Firebase config
     // crash the whole app during design review — log and continue so
@@ -46,4 +35,22 @@ Future<void> main() async {
       child: const EduSphereApp(),
     ),
   );
+
+  // None of this blocks the first frame. MessagingService in particular
+  // requests notification permission and fetches an FCM token over the
+  // network — awaiting it before runApp() was the actual cause of the
+  // multi-second delay before the splash screen ever appeared. Firebase
+  // itself is already initialized above, so Auth/Firestore calls from
+  // SplashScreen or anywhere else remain safe to make immediately.
+  unawaited(() async {
+    try {
+      await MessagingService().initialize();
+      FeatureFlagService.instance.start();
+      BrandingService.instance.start();
+      DashboardConfigService.instance.start();
+      UploadEngine.instance.start();
+    } catch (e) {
+      if (kDebugMode) debugPrint('Background service init failed: $e');
+    }
+  }());
 }

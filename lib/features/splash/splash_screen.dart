@@ -104,22 +104,105 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-              const Spacer(flex: 4),
+              const Spacer(flex: 3),
               FadeTransition(
                 opacity: _fadeIn,
-                child: Container(
-                  width: 48,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                child: const _LoadingIndicator(),
               ),
-              const SizedBox(height: 40),
+              const Spacer(flex: 1),
+              FadeTransition(
+                opacity: _fadeIn,
+                child: const _OwnershipFooter(),
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A clean, deliberate loading motif — three soft-pulsing dots — instead
+/// of a static bar that never actually conveyed "loading." Runs
+/// independently of the splash's own fade/scale controller so it keeps
+/// pulsing smoothly for the full splash duration, not just the initial
+/// 900ms entrance animation.
+class _LoadingIndicator extends StatefulWidget {
+  const _LoadingIndicator();
+
+  @override
+  State<_LoadingIndicator> createState() => _LoadingIndicatorState();
+}
+
+class _LoadingIndicatorState extends State<_LoadingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (i) {
+            // Each dot's pulse is offset by a third of the cycle so they
+            // ripple left-to-right rather than blinking in unison.
+            final t = (_pulse.value + (i * 0.33)) % 1.0;
+            final opacity = 0.35 + 0.65 * (0.5 - (t - 0.5).abs()) * 2;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Opacity(
+                opacity: opacity.clamp(0.35, 1.0),
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+/// "Powered by Cletus Tech" ownership credit, kept subtle (small, low
+/// opacity) so it reads as a footer rather than competing with the
+/// EduSphere brand above it.
+class _OwnershipFooter extends StatelessWidget {
+  const _OwnershipFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Powered by ${AppConstants.ownerBrand}',
+      style: TextStyle(
+        fontFamily: 'Poppins',
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.3,
+        color: Colors.white.withOpacity(0.6),
       ),
     );
   }

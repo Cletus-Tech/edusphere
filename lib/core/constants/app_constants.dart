@@ -2,6 +2,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = 'EduSphere';
+  static const String ownerBrand = 'Cletus Tech';
   static const String appTagline = 'Learn. Connect. Succeed.';
   static const String welcomeTagline = 'Learn. Without Limits.';
   static const String welcomeSubtitle = 'Your all-in-one educational ecosystem';

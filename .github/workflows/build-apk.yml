@@ -1,5 +1,10 @@
 name: Build APK
+- run: flutter build apk --release
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: edusphere-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
 on:
   push:
     branches: [ main ]

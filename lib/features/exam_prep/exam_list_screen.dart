@@ -120,7 +120,9 @@ class ExamListScreen extends StatelessWidget {
                     children: [
                       Text(
                         exam.title,
-                        style: AppTextStyles.bodyLarge(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w600),
+                        style: AppTextStyles.bodyLarge(
+                          Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary,
+                        ).copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 6),
                       Wrap(
@@ -171,12 +173,13 @@ class _ExamStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: AppColors.textSecondary),
+        Icon(icon, size: 14, color: color),
         const SizedBox(width: 4),
-        Text(label, style: AppTextStyles.bodySmall(AppColors.textSecondary)),
+        Text(label, style: AppTextStyles.bodySmall(color)),
       ],
     );
   }

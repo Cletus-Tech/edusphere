@@ -59,7 +59,9 @@ class JambDashboardScreen extends StatelessWidget {
             children: [
               Text(
                 'UTME prep — subjects, syllabus, and practice in one place.',
-                style: AppTextStyles.bodyMedium(AppColors.textSecondary),
+                style: AppTextStyles.bodyMedium(
+                  Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 20),
               GridView.count(
@@ -172,6 +174,7 @@ class _DashboardTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
     return CustomCard(
       onTap: onTap,
       child: Column(
@@ -185,7 +188,7 @@ class _DashboardTile extends StatelessWidget {
             child: Icon(icon, color: accent, size: 18),
           ),
           const SizedBox(height: 8),
-          Text(label, style: AppTextStyles.bodyMedium(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w600)),
+          Text(label, style: AppTextStyles.bodyMedium(labelColor).copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );

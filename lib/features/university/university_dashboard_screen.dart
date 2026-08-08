@@ -120,19 +120,20 @@ class _QuickActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
     return Row(
       children: [
         Expanded(
           child: CustomCard(
             onTap: onBrowse,
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.search_rounded, color: AppColors.primaryBlue),
-                SizedBox(height: 8),
-                Text('Search Universities', style: TextStyle(fontWeight: FontWeight.w600)),
-                SizedBox(height: 2),
-                Text('Browse & select your institution', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                const Icon(Icons.search_rounded, color: AppColors.primaryBlue),
+                const SizedBox(height: 8),
+                const Text('Search Universities', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text('Browse & select your institution', style: TextStyle(fontSize: 12, color: bodyColor)),
               ],
             ),
           ),
@@ -141,14 +142,14 @@ class _QuickActionsRow extends StatelessWidget {
         Expanded(
           child: CustomCard(
             onTap: onCbt,
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.quiz_rounded, color: AppColors.secondaryIndigo),
-                SizedBox(height: 8),
-                Text('CBT Practice', style: TextStyle(fontWeight: FontWeight.w600)),
-                SizedBox(height: 2),
-                Text('Coming soon', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                const Icon(Icons.quiz_rounded, color: AppColors.secondaryIndigo),
+                const SizedBox(height: 8),
+                const Text('CBT Practice', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text('Coming soon', style: TextStyle(fontSize: 12, color: bodyColor)),
               ],
             ),
           ),
@@ -164,6 +165,8 @@ class _SetupProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
+    final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
     return CustomCard(
       onTap: onTap,
       child: Row(
@@ -174,16 +177,16 @@ class _SetupProfileCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Set up your academic profile', style: AppTextStyles.bodyLarge(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w600)),
+                Text('Set up your academic profile', style: AppTextStyles.bodyLarge(titleColor).copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
                 Text(
                   'Pick your university to see your courses and materials here.',
-                  style: AppTextStyles.bodySmall(AppColors.textSecondary),
+                  style: AppTextStyles.bodySmall(bodyColor),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+          Icon(Icons.chevron_right_rounded, color: bodyColor),
         ],
       ),
     );
@@ -201,6 +204,8 @@ class _MyInstitutionCard extends StatelessWidget {
       builder: (context, snapshot) {
         final institution = snapshot.data;
         if (institution == null) return const SizedBox.shrink();
+        final titleColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
+        final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
         return CustomCard(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => InstitutionDetailScreen(institutionId: institutionId)),
@@ -220,10 +225,10 @@ class _MyInstitutionCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   institution.name,
-                  style: AppTextStyles.bodyLarge(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w600),
+                  style: AppTextStyles.bodyLarge(titleColor).copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              Icon(Icons.chevron_right_rounded, color: bodyColor),
             ],
           ),
         );
@@ -249,6 +254,8 @@ class _MyCoursesList extends StatelessWidget {
         if (courses.isEmpty) {
           return const EmptyView(message: 'No courses found for your level yet.', icon: Icons.menu_book_outlined);
         }
+        final titleColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
+        final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
         return Column(
           children: courses
               .take(5)
@@ -264,10 +271,10 @@ class _MyCoursesList extends StatelessWidget {
                         Expanded(
                           child: Text(
                             course.title,
-                            style: AppTextStyles.bodyMedium(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w600),
+                            style: AppTextStyles.bodyMedium(titleColor).copyWith(fontWeight: FontWeight.w600),
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                        Icon(Icons.chevron_right_rounded, color: bodyColor),
                       ],
                     ),
                   ),

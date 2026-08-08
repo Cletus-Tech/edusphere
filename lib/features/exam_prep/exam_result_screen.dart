@@ -19,6 +19,8 @@ class ExamResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final passColor = attempt.passed ? AppColors.success : AppColors.error;
+    final titleColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
+    final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
 
     return Scaffold(
       appBar: AppBar(title: Text(exam.title), automaticallyImplyLeading: false),
@@ -53,7 +55,7 @@ class ExamResultScreen extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     'Pass mark: ${exam.passMarkPercent}%',
-                    style: AppTextStyles.bodySmall(AppColors.textSecondary),
+                    style: AppTextStyles.bodySmall(bodyColor),
                   ),
                 ],
               ),
@@ -91,14 +93,14 @@ class ExamResultScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Time taken', style: AppTextStyles.bodyMedium(AppColors.textPrimary)),
-                  Text(_formatDuration(attempt.timeTakenSeconds), style: AppTextStyles.bodyMedium(AppColors.textSecondary)),
+                  Text('Time taken', style: AppTextStyles.bodyMedium(titleColor)),
+                  Text(_formatDuration(attempt.timeTakenSeconds), style: AppTextStyles.bodyMedium(bodyColor)),
                 ],
               ),
             ),
             if (attempt.topicBreakdown.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Text('By topic', style: AppTextStyles.titleMedium(AppColors.textPrimary)),
+              Text('By topic', style: AppTextStyles.titleMedium(titleColor)),
               const SizedBox(height: 8),
               CustomCard(
                 child: Column(
@@ -111,8 +113,8 @@ class ExamResultScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(child: Text(e.key, style: AppTextStyles.bodyMedium(AppColors.textPrimary))),
-                          Text('$correct / $total', style: AppTextStyles.bodyMedium(AppColors.textSecondary)),
+                          Expanded(child: Text(e.key, style: AppTextStyles.bodyMedium(titleColor))),
+                          Text('$correct / $total', style: AppTextStyles.bodyMedium(bodyColor)),
                         ],
                       ),
                     );
@@ -153,13 +155,14 @@ class _StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
     return CustomCard(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       child: Column(
         children: [
           Text(value, style: AppTextStyles.headlineSmall(color)),
           const SizedBox(height: 4),
-          Text(label, style: AppTextStyles.bodySmall(AppColors.textSecondary), textAlign: TextAlign.center),
+          Text(label, style: AppTextStyles.bodySmall(labelColor), textAlign: TextAlign.center),
         ],
       ),
     );

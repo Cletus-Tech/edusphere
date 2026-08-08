@@ -120,6 +120,20 @@ class AdminDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _AdminModuleTile(
+            icon: Icons.assignment_rounded,
+            accent: AppColors.secondaryIndigo,
+            title: 'JAMB Subjects',
+            description: 'Add and manage subjects for the JAMB module. Study materials, '
+                'syllabus, and past questions are managed from Learning Materials.',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SubjectManagerScreen(categoryId: 'jamb', categoryLabel: 'JAMB'),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _AdminModuleTile(
             icon: Icons.settings_suggest_rounded,
             accent: AppColors.accentGreen,
             title: 'App Settings',

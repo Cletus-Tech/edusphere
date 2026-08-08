@@ -90,6 +90,7 @@ class _SubjectBrowseScreenState extends State<SubjectBrowseScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final subject = subjects[index];
+                      final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
                       return Material(
                         color: Theme.of(context).cardTheme.color,
                         borderRadius: BorderRadius.circular(14),
@@ -130,12 +131,12 @@ class _SubjectBrowseScreenState extends State<SubjectBrowseScreen> {
                                       if (subject.code.isNotEmpty)
                                         Padding(
                                           padding: const EdgeInsets.only(top: 2),
-                                          child: Text(subject.code, style: AppTextStyles.bodySmall(AppColors.textSecondary)),
+                                          child: Text(subject.code, style: AppTextStyles.bodySmall(bodyColor)),
                                         ),
                                     ],
                                   ),
                                 ),
-                                const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                                Icon(Icons.chevron_right_rounded, color: bodyColor),
                               ],
                             ),
                           ),

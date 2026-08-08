@@ -126,7 +126,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   if (course.description != null && course.description!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
-                      child: Text(course.description!, style: AppTextStyles.bodyMedium(AppColors.textSecondary)),
+                      child: Text(
+                        course.description!,
+                        style: AppTextStyles.bodyMedium(
+                          Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary,
+                        ),
+                      ),
                     ),
                 ],
               ),

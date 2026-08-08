@@ -37,6 +37,14 @@ class ExamSessionModel extends Equatable implements FirestoreModel {
   final List<String> flaggedQuestionIds;
   final List<String> bookmarkedQuestionIds;
 
+  /// Every question index the student has scrolled/jumped to at least
+  /// once, regardless of whether it was answered. Stage 4.8B — powers
+  /// the palette's "visited but unanswered" state, distinct from
+  /// "never opened", per the spec's navigation requirements. Additive:
+  /// absent on any session written before this stage, which just means
+  /// "nothing recorded as visited yet" (safe default, not a data error).
+  final List<String> visitedQuestionIds;
+
   /// The fixed order of question ids for *this* session — computed
   /// once at start (respecting `ExamModel.shuffleQuestions`) and then
   /// reused on every resume, so the student never sees questions
@@ -74,6 +82,7 @@ class ExamSessionModel extends Equatable implements FirestoreModel {
     this.answers = const {},
     this.flaggedQuestionIds = const [],
     this.bookmarkedQuestionIds = const [],
+    this.visitedQuestionIds = const [],
     this.questionOrder = const [],
     this.optionOrder = const {},
     this.currentQuestionIndex = 0,
@@ -93,6 +102,7 @@ class ExamSessionModel extends Equatable implements FirestoreModel {
       answers: FirestoreConvert.map(map['answers']),
       flaggedQuestionIds: FirestoreConvert.stringList(map['flaggedQuestionIds']),
       bookmarkedQuestionIds: FirestoreConvert.stringList(map['bookmarkedQuestionIds']),
+      visitedQuestionIds: FirestoreConvert.stringList(map['visitedQuestionIds']),
       questionOrder: FirestoreConvert.stringList(map['questionOrder']),
       optionOrder: FirestoreConvert.map(map['optionOrder']),
       currentQuestionIndex: map['currentQuestionIndex'] as int? ?? 0,
@@ -112,6 +122,7 @@ class ExamSessionModel extends Equatable implements FirestoreModel {
         'answers': answers,
         'flaggedQuestionIds': flaggedQuestionIds,
         'bookmarkedQuestionIds': bookmarkedQuestionIds,
+        'visitedQuestionIds': visitedQuestionIds,
         'questionOrder': questionOrder,
         'optionOrder': optionOrder,
         'currentQuestionIndex': currentQuestionIndex,
@@ -126,6 +137,7 @@ class ExamSessionModel extends Equatable implements FirestoreModel {
     Map<String, dynamic>? answers,
     List<String>? flaggedQuestionIds,
     List<String>? bookmarkedQuestionIds,
+    List<String>? visitedQuestionIds,
     int? currentQuestionIndex,
     int? remainingSeconds,
     DateTime? lastSavedAt,
@@ -140,6 +152,7 @@ class ExamSessionModel extends Equatable implements FirestoreModel {
       answers: answers ?? this.answers,
       flaggedQuestionIds: flaggedQuestionIds ?? this.flaggedQuestionIds,
       bookmarkedQuestionIds: bookmarkedQuestionIds ?? this.bookmarkedQuestionIds,
+      visitedQuestionIds: visitedQuestionIds ?? this.visitedQuestionIds,
       questionOrder: questionOrder,
       optionOrder: optionOrder,
       currentQuestionIndex: currentQuestionIndex ?? this.currentQuestionIndex,

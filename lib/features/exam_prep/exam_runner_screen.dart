@@ -6,6 +6,7 @@ import '../../models/exam_session_model.dart';
 import '../../repositories/learning_repository.dart';
 import '../../services/firebase/auth_service.dart';
 import '../../shared/widgets/state_views.dart';
+import '../../theme/app_animations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
@@ -147,6 +148,7 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
       _elapsedSeconds = DateTime.now().difference(session.startedAt).inSeconds.clamp(0, 1 << 30);
       _loading = false;
     });
+    _markVisited(_currentIndex);
     _startTicker();
   }
 
@@ -282,7 +284,17 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
 
   void _jumpTo(int index) {
     setState(() => _currentIndex = index);
+    _markVisited(index);
     _autoSave();
+  }
+
+  void _markVisited(int index) {
+    final session = _session;
+    if (session == null || index < 0 || index >= _questions.length) return;
+    final questionId = _questions[index].questionId;
+    if (session.visitedQuestionIds.contains(questionId)) return;
+    final visited = List<String>.from(session.visitedQuestionIds)..add(questionId);
+    _session = session.copyWith(visitedQuestionIds: visited);
   }
 
   void _goNext() {
@@ -293,6 +305,24 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
   void _goPrevious() {
     if (_currentIndex <= 0) return;
     _jumpTo(_currentIndex - 1);
+  }
+
+  Future<void> _openPalette() async {
+    final session = _session;
+    if (session == null) return;
+    final target = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _QuestionPaletteSheet(
+        questions: _questions,
+        currentIndex: _currentIndex,
+        answers: session.answers,
+        flagged: session.flaggedQuestionIds,
+        visited: session.visitedQuestionIds,
+      ),
+    );
+    if (target != null) _jumpTo(target);
   }
 
   @override
@@ -320,9 +350,22 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
     final isBookmarked = session.bookmarkedQuestionIds.contains(question.questionId);
     final displayOrder = (session.optionOrder[question.questionId] as List?)?.map((e) => e as int).toList();
     final isTimed = session.mode != ExamMode.practice;
-    final clockLabel = isTimed
-        ? _formatClock(session.remainingSeconds ?? widget.exam.durationMinutes * 60)
-        : _formatClock(_elapsedSeconds);
+    final remaining = session.remainingSeconds ?? widget.exam.durationMinutes * 60;
+    final clockLabel = isTimed ? _formatClock(remaining) : _formatClock(_elapsedSeconds);
+    // Stage B7 — three-tier time-pressure color instead of a binary
+    // normal/red split: `warningAmber` (defined in B1, unused anywhere
+    // until now) fills the "getting low" gap between "plenty of time"
+    // and the existing hard-red "under a minute" state. Purely a
+    // display threshold on the same `remainingSeconds` the timer
+    // already ticks down — no new state, no change to when auto-submit
+    // actually fires.
+    final Color clockColor = !isTimed
+        ? AppColors.textSecondary
+        : remaining < 60
+            ? AppColors.error
+            : remaining < 300
+                ? AppColors.warningAmber
+                : AppColors.textSecondary;
 
     return PopScope(
       canPop: false,
@@ -335,6 +378,11 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
         appBar: AppBar(
           title: Text('Question ${_currentIndex + 1} of ${_questions.length}'),
           actions: [
+            IconButton(
+              tooltip: 'Question palette',
+              icon: const Icon(Icons.grid_view_rounded),
+              onPressed: _openPalette,
+            ),
             if (widget.exam.calculatorType != CalculatorType.none)
               IconButton(
                 tooltip: 'Calculator',
@@ -343,7 +391,17 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
               ),
             IconButton(
               tooltip: isBookmarked ? 'Remove bookmark' : 'Bookmark question',
-              icon: Icon(isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded),
+              icon: Icon(
+                isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                // Stage B7 — bookmark previously had no active-state
+                // color at all (identical icon color whether on or
+                // off, distinguishable only by shape). Flag already
+                // gets highlightOrange when active; bookmark gets its
+                // own token so the two "marked for later" signals
+                // next to each other in the AppBar read as visually
+                // distinct, not as one repeated treatment.
+                color: isBookmarked ? AppColors.accentCyan : null,
+              ),
               onPressed: () => _toggleBookmark(question.questionId),
             ),
             IconButton(
@@ -372,17 +430,10 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
                   Icon(
                     isTimed ? Icons.timer_outlined : Icons.schedule_outlined,
                     size: 16,
-                    color: isTimed && (session.remainingSeconds ?? 999) < 60
-                        ? AppColors.error
-                        : AppColors.textSecondary,
+                    color: clockColor,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    clockLabel,
-                    style: AppTextStyles.bodySmall(
-                      isTimed && (session.remainingSeconds ?? 999) < 60 ? AppColors.error : AppColors.textSecondary,
-                    ),
-                  ),
+                  Text(clockLabel, style: AppTextStyles.bodySmall(clockColor)),
                 ],
               ),
             ),
@@ -396,6 +447,7 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
                 currentIndex: _currentIndex,
                 answers: session.answers,
                 flagged: session.flaggedQuestionIds,
+                visited: session.visitedQuestionIds,
                 onJump: _jumpTo,
               ),
               Expanded(
@@ -429,6 +481,7 @@ class _QuestionNavigator extends StatelessWidget {
   final int currentIndex;
   final Map<String, dynamic> answers;
   final List<String> flagged;
+  final List<String> visited;
   final ValueChanged<int> onJump;
 
   const _QuestionNavigator({
@@ -436,6 +489,7 @@ class _QuestionNavigator extends StatelessWidget {
     required this.currentIndex,
     required this.answers,
     required this.flagged,
+    required this.visited,
     required this.onJump,
   });
 
@@ -453,6 +507,7 @@ class _QuestionNavigator extends StatelessWidget {
           final isCurrent = index == currentIndex;
           final isAnswered = answers[q.questionId] != null;
           final isFlagged = flagged.contains(q.questionId);
+          final isVisited = visited.contains(q.questionId);
 
           Color background;
           Color foreground;
@@ -465,6 +520,9 @@ class _QuestionNavigator extends StatelessWidget {
           } else if (isAnswered) {
             background = AppColors.accentGreen.withOpacity(0.15);
             foreground = AppColors.accentGreen;
+          } else if (isVisited) {
+            background = AppColors.textSecondary.withOpacity(0.18);
+            foreground = AppColors.textPrimary;
           } else {
             background = AppColors.textSecondary.withOpacity(0.1);
             foreground = AppColors.textSecondary;
@@ -472,13 +530,25 @@ class _QuestionNavigator extends StatelessWidget {
 
           return GestureDetector(
             onTap: () => onJump(index),
-            child: Container(
+            // Stage B7 — AnimatedContainer with the existing
+            // AppAnimations.fast constant so jumping between questions
+            // (or a question flipping from unanswered -> answered)
+            // transitions its color/border smoothly instead of
+            // snapping, matching the "smooth but subtle transitions"
+            // direction set in B3. Current question also gets a ring
+            // (border, not just a fill) so it's identifiable even for
+            // someone who can't distinguish the fill color itself.
+            child: AnimatedContainer(
+              duration: AppAnimations.fast,
+              curve: AppAnimations.standard,
               width: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: background,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                border: isFlagged && !isCurrent ? Border.all(color: AppColors.highlightOrange) : null,
+                border: isCurrent
+                    ? Border.all(color: AppColors.primaryBlue, width: 2)
+                    : (isFlagged ? Border.all(color: AppColors.highlightOrange) : null),
               ),
               child: Text('${index + 1}', style: TextStyle(color: foreground, fontWeight: FontWeight.w600)),
             ),
@@ -640,6 +710,186 @@ class _NavBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Full grid question palette — Stage 4.8B. The horizontal strip in
+/// [_QuestionNavigator] is fine for a glance, but a JAMB/WAEC-length
+/// exam (60-250 questions) needs something scannable at a glance, plus
+/// First/Last jump and an explicit legend, per the spec's "professional
+/// CBT navigation" requirement. Returns the tapped index via
+/// `Navigator.pop(context, index)`; the caller (`_openPalette`) is
+/// responsible for actually jumping and marking it visited.
+class _QuestionPaletteSheet extends StatelessWidget {
+  final List<QuestionModel> questions;
+  final int currentIndex;
+  final Map<String, dynamic> answers;
+  final List<String> flagged;
+  final List<String> visited;
+
+  const _QuestionPaletteSheet({
+    required this.questions,
+    required this.currentIndex,
+    required this.answers,
+    required this.flagged,
+    required this.visited,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
+    final answeredCount = questions.where((q) => answers[q.questionId] != null).length;
+
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.only(top: 60),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Question Palette · $answeredCount/${questions.length} answered',
+                      style: AppTextStyles.titleMedium(
+                        Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 6,
+                children: [
+                  _LegendDot(color: AppColors.primaryBlue, label: 'Current'),
+                  _LegendDot(color: AppColors.accentGreen, label: 'Answered'),
+                  _LegendDot(color: AppColors.highlightOrange, label: 'Flagged'),
+                  _LegendDot(color: bodyColor.withOpacity(0.5), label: 'Visited'),
+                  _LegendDot(color: bodyColor.withOpacity(0.2), label: 'Unvisited'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                shrinkWrap: true,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 6,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 1,
+                ),
+                itemCount: questions.length,
+                itemBuilder: (context, index) {
+                  final q = questions[index];
+                  final isCurrent = index == currentIndex;
+                  final isAnswered = answers[q.questionId] != null;
+                  final isFlagged = flagged.contains(q.questionId);
+                  final isVisited = visited.contains(q.questionId);
+
+                  Color background;
+                  Color foreground;
+                  if (isCurrent) {
+                    background = AppColors.primaryBlue;
+                    foreground = Colors.white;
+                  } else if (isFlagged) {
+                    background = AppColors.highlightOrange.withOpacity(0.18);
+                    foreground = AppColors.highlightOrange;
+                  } else if (isAnswered) {
+                    background = AppColors.accentGreen.withOpacity(0.18);
+                    foreground = AppColors.accentGreen;
+                  } else if (isVisited) {
+                    background = bodyColor.withOpacity(0.18);
+                    foreground = bodyColor;
+                  } else {
+                    background = bodyColor.withOpacity(0.08);
+                    foreground = bodyColor.withOpacity(0.7);
+                  }
+
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => Navigator.pop(context, index),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: background,
+                        borderRadius: BorderRadius.circular(10),
+                        border: isFlagged && !isCurrent
+                            ? Border.all(color: AppColors.highlightOrange)
+                            : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, 0),
+                      child: const Text('First'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, questions.length - 1),
+                      child: const Text('Last'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: AppTextStyles.bodySmall(bodyColor)),
+      ],
     );
   }
 }

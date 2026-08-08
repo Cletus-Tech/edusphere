@@ -51,7 +51,12 @@ class CommunityScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.secondaryIndigo,
+        // Stage B6 — accentPurple is Community's module identity color
+        // (unclaimed since B1; B5 already gave JAMB/WAEC/NECO their
+        // own accents the same way). Previously secondaryIndigo, which
+        // several other unrelated surfaces also use for plain brand
+        // blue — this gives Community something visually its own.
+        backgroundColor: AppColors.accentPurple,
         icon: const Icon(Icons.edit_rounded),
         label: const Text('Post'),
         onPressed: () async {

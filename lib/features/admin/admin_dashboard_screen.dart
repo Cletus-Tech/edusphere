@@ -93,7 +93,10 @@ class AdminDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _AdminModuleTile(
             icon: Icons.menu_book_rounded,
-            accent: AppColors.accentGreen,
+            // Stage B7 — was `accentGreen` (a generic color, also used
+            // by two other unrelated tiles above). Matches WAEC's own
+            // dashboard identity color from B5 instead.
+            accent: AppColors.accentTeal,
             title: 'WAEC Subjects',
             description: 'Add and manage subjects for the WAEC module. Study materials, '
                 'syllabus, and past questions are managed from Learning Materials.',
@@ -107,7 +110,9 @@ class AdminDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _AdminModuleTile(
             icon: Icons.edit_document,
-            accent: AppColors.highlightOrange,
+            // Stage B7 — matches NECO's B5 dashboard identity color
+            // (was `highlightOrange`, also reused by Moderation above).
+            accent: AppColors.necoEmerald,
             title: 'NECO Subjects',
             description: 'Add and manage subjects for the NECO module. Study materials, '
                 'syllabus, and past questions are managed from Learning Materials.',
@@ -121,7 +126,10 @@ class AdminDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _AdminModuleTile(
             icon: Icons.assignment_rounded,
-            accent: AppColors.secondaryIndigo,
+            // Stage B7 — matches JAMB's B5 dashboard identity color
+            // (was `secondaryIndigo`, also reused by Audit Log and
+            // Users & Roles above — JAMB gets its own token instead).
+            accent: AppColors.accentViolet,
             title: 'JAMB Subjects',
             description: 'Add and manage subjects for the JAMB module. Study materials, '
                 'syllabus, and past questions are managed from Learning Materials.',

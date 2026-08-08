@@ -5,6 +5,7 @@ import '../../models/course_model.dart';
 import '../../models/learning_material_model.dart';
 import '../../repositories/course_repository.dart';
 import '../../repositories/learning_material_repository.dart';
+import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
@@ -63,7 +64,9 @@ class JambDashboardScreen extends StatelessWidget {
                   Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+              const AppChip(label: 'JAMB', icon: Icons.assignment_rounded, accent: AppColors.accentViolet, selected: true),
+              const SizedBox(height: 12),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -74,37 +77,37 @@ class JambDashboardScreen extends StatelessWidget {
                 children: [
                   _DashboardTile(
                     icon: Icons.menu_book_rounded,
-                    accent: AppColors.accentGreen,
+                    accent: AppColors.accentViolet,
                     label: 'Subjects',
                     onTap: () => _openSubjects(context),
                   ),
                   _DashboardTile(
                     icon: Icons.rule_rounded,
-                    accent: AppColors.primaryBlue,
+                    accent: AppColors.accentViolet,
                     label: 'Syllabus',
                     onTap: () => _openSubjects(context, section: CourseSection.syllabus),
                   ),
                   _DashboardTile(
                     icon: Icons.quiz_rounded,
-                    accent: AppColors.secondaryIndigo,
+                    accent: AppColors.accentViolet,
                     label: 'CBT',
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.cbt),
                   ),
                   _DashboardTile(
                     icon: Icons.edit_note_rounded,
-                    accent: AppColors.highlightOrange,
+                    accent: AppColors.accentViolet,
                     label: 'Practice',
                     onTap: () => _openSubjects(context, section: CourseSection.practiceQuestions),
                   ),
                   _DashboardTile(
                     icon: Icons.history_edu_rounded,
-                    accent: AppColors.accentGreen,
+                    accent: AppColors.accentViolet,
                     label: 'Past Questions',
                     onTap: () => _openSubjects(context, section: CourseSection.pastQuestions),
                   ),
                   _DashboardTile(
                     icon: Icons.assignment_turned_in_rounded,
-                    accent: AppColors.primaryBlue,
+                    accent: AppColors.accentViolet,
                     label: 'Mock Exams',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -114,7 +117,7 @@ class JambDashboardScreen extends StatelessWidget {
                   ),
                   _DashboardTile(
                     icon: Icons.insights_rounded,
-                    accent: AppColors.secondaryIndigo,
+                    accent: AppColors.accentViolet,
                     label: 'Performance',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -124,7 +127,7 @@ class JambDashboardScreen extends StatelessWidget {
                   ),
                   _DashboardTile(
                     icon: Icons.event_note_rounded,
-                    accent: AppColors.highlightOrange,
+                    accent: AppColors.accentViolet,
                     label: 'Study Plan',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -134,7 +137,7 @@ class JambDashboardScreen extends StatelessWidget {
                   ),
                   _DashboardTile(
                     icon: Icons.star_rounded,
-                    accent: AppColors.accentGreen,
+                    accent: AppColors.accentViolet,
                     label: 'Recommended',
                     onTap: () => _openSubjects(context, section: CourseSection.recommended),
                   ),

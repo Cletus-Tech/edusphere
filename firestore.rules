@@ -62,12 +62,17 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isOwner(userId);
-      // Users may edit their own profile but never their own `roles` or
-      // `isVerified`/`isSuspended` fields — only staff can do that.
+      // Users may edit their own profile but never their own `roles`,
+      // `isVerified`/`isSuspended`, or premium-subscription fields —
+      // only staff (or a future payment webhook, also acting as staff)
+      // can grant premium. Without this, a student could self-grant
+      // premium by editing their own document client-side.
       allow update: if isOwner(userId) &&
         request.resource.data.roles == resource.data.roles &&
         request.resource.data.isVerified == resource.data.isVerified &&
-        request.resource.data.isSuspended == resource.data.isSuspended
+        request.resource.data.isSuspended == resource.data.isSuspended &&
+        request.resource.data.isPremium == resource.data.isPremium &&
+        request.resource.data.get('premiumExpiresAt', null) == resource.data.get('premiumExpiresAt', null)
         || isAdmin();
       allow delete: if isSuperAdmin();
     }

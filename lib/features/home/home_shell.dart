@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_animations.dart';
+import '../../theme/app_text_styles.dart';
 import '../ai_tutor/ai_tutor_screen.dart';
 import '../community/community_screen.dart';
 import '../learn/learn_screen.dart';
@@ -40,16 +42,10 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: _AppBottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: _items
-            .map((item) => BottomNavigationBarItem(
-                  icon: Icon(item.icon),
-                  activeIcon: Icon(item.activeIcon),
-                  label: item.label,
-                ))
-            .toList(),
+        items: _items,
+        onTap: _goToTab,
       ),
     );
   }
@@ -65,4 +61,83 @@ class _NavItem {
     required this.activeIcon,
     required this.label,
   });
+}
+
+/// Stage B3 — replaces the stock [BottomNavigationBar] with a custom
+/// bar whose active tab gets a real indicator (a pill behind the
+/// icon) instead of the previous "icon just changes color" treatment
+/// the beautification audit flagged. Reads every color from
+/// [BottomNavigationBarThemeData] (already fully defined for both
+/// light and dark in `app_theme.dart`) rather than hardcoding
+/// anything, so light/dark and any future theme tweak keep working
+/// with zero changes here. `_currentIndex`/`_goToTab`/`_pages` logic
+/// above is completely untouched — this is a presentation-only swap.
+class _AppBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final List<_NavItem> items;
+  final ValueChanged<int> onTap;
+
+  const _AppBottomNavBar({
+    required this.currentIndex,
+    required this.items,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final navTheme = Theme.of(context).bottomNavigationBarTheme;
+    final backgroundColor = navTheme.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor;
+    final selectedColor = navTheme.selectedItemColor ?? Theme.of(context).colorScheme.primary;
+    final unselectedColor = navTheme.unselectedItemColor ?? Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor, width: 1)),
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isSelected = index == currentIndex;
+              return Expanded(
+                child: InkWell(
+                  onTap: () => onTap(index),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedContainer(
+                        duration: AppAnimations.fast,
+                        curve: AppAnimations.standard,
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected ? selectedColor.withOpacity(0.12) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          isSelected ? item.activeIcon : item.icon,
+                          color: isSelected ? selectedColor : unselectedColor,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      AnimatedDefaultTextStyle(
+                        duration: AppAnimations.fast,
+                        curve: AppAnimations.standard,
+                        style: AppTextStyles.caption(isSelected ? selectedColor : unselectedColor)
+                            .copyWith(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500),
+                        child: Text(item.label),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
 }

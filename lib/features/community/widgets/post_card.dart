@@ -10,6 +10,7 @@ import '../../../shared/dialogs/app_dialog.dart';
 import '../../../shared/widgets/app_avatar.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/state_views.dart';
+import '../../../theme/app_animations.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../theme/app_theme.dart';
@@ -204,10 +205,22 @@ class _LikeButton extends StatelessWidget {
           onTap: () => ReactionRepository().toggleLike(uid: uid, targetId: post.postId, targetType: 'post'),
           child: Row(
             children: [
-              Icon(
-                liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                size: 20,
-                color: liked ? AppColors.error : bodyColor,
+              // Stage B6 — a short scale "pop" on state change (not on
+              // every rebuild: AnimatedScale only animates when its
+              // own `scale` input actually changes, so a StreamBuilder
+              // tick that doesn't flip `liked` doesn't retrigger it).
+              // Uses AppAnimations.fast — the exact constant B1
+              // reserved for "button press, chip select, toggle" —
+              // rather than a new magic duration.
+              AnimatedScale(
+                scale: liked ? 1.15 : 1.0,
+                duration: AppAnimations.fast,
+                curve: AppAnimations.emphasized,
+                child: Icon(
+                  liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  size: 20,
+                  color: liked ? AppColors.error : bodyColor,
+                ),
               ),
               const SizedBox(width: 6),
               StreamBuilder<int>(
@@ -238,10 +251,15 @@ class _BookmarkButton extends StatelessWidget {
         final bookmarked = snapshot.data ?? false;
         return InkWell(
           onTap: () => BookmarkRepository().toggle(uid: uid, targetId: postId, targetType: 'post'),
-          child: Icon(
-            bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-            size: 20,
-            color: bookmarked ? AppColors.primaryBlue : bodyColor,
+          child: AnimatedScale(
+            scale: bookmarked ? 1.15 : 1.0,
+            duration: AppAnimations.fast,
+            curve: AppAnimations.emphasized,
+            child: Icon(
+              bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+              size: 20,
+              color: bookmarked ? AppColors.accentPurple : bodyColor,
+            ),
           ),
         );
       },

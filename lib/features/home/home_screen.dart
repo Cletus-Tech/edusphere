@@ -7,6 +7,7 @@ import '../../repositories/engagement_repository.dart';
 import '../../repositories/learning_material_repository.dart';
 import '../../services/config/dashboard_config_service.dart';
 import '../../services/firebase/auth_service.dart';
+import '../../theme/app_animations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
@@ -232,44 +233,73 @@ class _HeroBanner extends StatelessWidget {
         final banners = DashboardConfigService.instance.activeBanners;
         final banner = banners.isNotEmpty ? banners.first : null;
 
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: AppColors.splashGradient,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: AppAnimations.medium,
+          curve: AppAnimations.standard,
+          builder: (context, value, child) => Opacity(
+            opacity: value,
+            child: Transform.translate(offset: Offset(0, (1 - value) * 12), child: child),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: AppColors.featuredGradient,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                // Stage B4 — a purely decorative glow so the hero card
+                // reads as a considered surface rather than a flat
+                // gradient fill; doesn't affect the row's layout below.
+                Positioned(
+                  right: -30,
+                  top: -30,
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.08),
+                    ),
+                  ),
+                ),
+                Row(
                   children: [
-                    Text(
-                      banner?.title ?? 'The Future of Learning is Here!',
-                      style: AppTextStyles.titleMedium(Colors.white),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      banner == null ? 'Learn anytime, anywhere.' : ' ',
-                      style: AppTextStyles.bodySmall(Colors.white.withOpacity(0.85)),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppColors.primaryBlue,
-                        minimumSize: const Size(0, 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            banner?.title ?? 'The Future of Learning is Here!',
+                            style: AppTextStyles.titleMedium(Colors.white),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            banner == null ? 'Learn anytime, anywhere.' : ' ',
+                            style: AppTextStyles.bodySmall(Colors.white.withOpacity(0.85)),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppColors.primaryBlue,
+                              minimumSize: const Size(0, 40),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                            ),
+                            onPressed: onLearnMore,
+                            child: const Text('Learn More'),
+                          ),
+                        ],
                       ),
-                      onPressed: onLearnMore,
-                      child: const Text('Learn More'),
                     ),
+                    const Icon(Icons.school_rounded, color: Colors.white, size: 56),
                   ],
                 ),
-              ),
-              const Icon(Icons.school_rounded, color: Colors.white, size: 56),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -359,6 +389,10 @@ class _QuickAccessRow extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: color.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(AppRadius.md),
+                            border: Border.all(color: color.withOpacity(0.25)),
+                            boxShadow: Theme.of(context).brightness == Brightness.light
+                                ? [BoxShadow(color: color.withOpacity(0.18), blurRadius: 10, offset: const Offset(0, 4))]
+                                : null,
                           ),
                           child: Icon(icon, color: color),
                         ),
@@ -430,6 +464,7 @@ class _RecentMaterials extends StatelessWidget {
               if (i > 0) const SizedBox(height: 10),
               CustomCard(
                 onTap: () => onOpenMaterial(materials[i]),
+                accentColor: materials[i].type.color,
                 child: Row(
                   children: [
                     Container(

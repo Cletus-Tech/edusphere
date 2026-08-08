@@ -28,6 +28,11 @@ class MaterialCard extends StatelessWidget {
     return CustomCard(
       onTap: onTap,
       padding: EdgeInsets.zero,
+      // Stage B6 — reuses the accentColor stripe param B2/B4 already
+      // added to CustomCard (previously only used on Home's "Recently
+      // Added" rows) so the Library grid carries the same per-type
+      // identity treatment instead of a flat, untinted edge.
+      accentColor: type.color,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

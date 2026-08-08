@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/enums/content_type.dart';
-import '../university/course_detail_screen.dart';import '../../core/routes/app_routes.dart';
+import '../../core/routes/app_routes.dart';
 import '../../models/course_model.dart';
 import '../../models/learning_material_model.dart';
 import '../../repositories/course_repository.dart';
 import '../../repositories/learning_material_repository.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
-import '../../shared/widgets/state_views.dart';import '../university/course_detail_screen.dart';
+import '../../shared/widgets/state_views.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../exam_prep/exam_list_screen.dart';
@@ -15,6 +15,7 @@ import '../exam_prep/performance_placeholder_screen.dart';
 import '../exam_prep/subject_browse_screen.dart';
 import '../learn/learning_materials/material_detail_screen.dart';
 import '../learn/learning_materials/widgets/material_card.dart';
+import '../university/course_detail_screen.dart';
 
 /// Stage 4.6 Part 2 — replaces the Stage 4.1 `NecoScreen` placeholder
 /// as the real `Home → NECO` destination.

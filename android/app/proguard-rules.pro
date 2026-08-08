@@ -25,4 +25,9 @@
 # General Android
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
+
+# Flutter's engine references Play Store split-delivery classes
+# (deferred/dynamic feature components) even when unused. This app
+# doesn't include com.google.android.play:core, so these classes
+# genuinely don't exist — that's expected, not a real problem.
 -dontwarn com.google.android.play.core.**

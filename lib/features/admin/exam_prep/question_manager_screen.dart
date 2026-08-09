@@ -14,6 +14,7 @@ import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/state_views.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
+import 'bulk_question_upload_screen.dart';
 
 /// Only these five [QuestionType]s have real answer-entry UI in
 /// [ExamRunnerScreen] and real scoring in `exam_scoring.dart` as of
@@ -22,7 +23,7 @@ import '../../../theme/app_text_styles.dart';
 /// admin editor for them here would create content nobody can actually
 /// answer. Restricting the type picker to this list keeps what admins
 /// can create in sync with what students can actually sit.
-const _supportedQuestionTypes = [
+const supportedQuestionTypes = [
   QuestionType.singleChoice,
   QuestionType.multipleChoice,
   QuestionType.trueFalse,
@@ -92,7 +93,18 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
     final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
 
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.exam.title} · Questions')),
+      appBar: AppBar(
+        title: Text('${widget.exam.title} · Questions'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.upload_file_rounded),
+            tooltip: 'Bulk upload from CSV',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => BulkQuestionUploadScreen(exam: widget.exam)),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openEditor(),
         child: const Icon(Icons.add_rounded),
@@ -336,7 +348,7 @@ class _QuestionEditorScreenState extends State<_QuestionEditorScreen> {
               DropdownButtonFormField<QuestionType>(
                 value: _type,
                 decoration: const InputDecoration(labelText: 'Question type'),
-                items: _supportedQuestionTypes
+                items: supportedQuestionTypes
                     .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
                     .toList(),
                 onChanged: (v) => setState(() => _type = v ?? _type),

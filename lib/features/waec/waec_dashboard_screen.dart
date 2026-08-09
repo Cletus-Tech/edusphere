@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/enums/content_type.dart';
-import '../../core/routes/app_routes.dart';
 import '../../models/course_model.dart';
 import '../../models/learning_material_model.dart';
 import '../../repositories/course_repository.dart';
@@ -96,7 +95,11 @@ class WaecDashboardScreen extends StatelessWidget {
                     icon: Icons.quiz_rounded,
                     accent: AppColors.secondaryIndigo,
                     label: 'CBT',
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.cbt),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ExamListScreen(examTypeId: ExamType.waec.id, title: 'WAEC Mock Exams'),
+                      ),
+                    ),
                   ),
                   _DashboardTile(
                     icon: Icons.history_edu_rounded,

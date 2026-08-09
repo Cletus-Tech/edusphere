@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/enums/content_type.dart';
-import '../../core/routes/app_routes.dart';
 import '../../models/course_model.dart';
 import '../../models/learning_material_model.dart';
 import '../../repositories/course_repository.dart';
@@ -111,11 +110,11 @@ class NecoDashboardScreen extends StatelessWidget {
                     icon: Icons.quiz_rounded,
                     accent: AppColors.secondaryIndigo,
                     label: 'CBT',
-                    // Stage 4.6 Part 4 — CBT engine itself isn't built yet
-                    // (WAEC's tile has the same forward reference); this
-                    // just proves the module already knows how to launch
-                    // it via the shared route the moment it exists.
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.cbt),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ExamListScreen(examTypeId: ExamType.neco.id, title: 'NECO Mock Exams'),
+                      ),
+                    ),
                   ),
                   _DashboardTile(
                     icon: Icons.history_edu_rounded,

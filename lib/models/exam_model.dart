@@ -42,6 +42,16 @@ class ExamModel extends Equatable implements FirestoreModel {
   final bool proctoringEnabled;
   final List<ExamMode> supportedModes;
 
+  // --- Stage 4.8B: navigation rules (spec section 11) --------------------
+  // All default to today's actual runner behaviour (free navigation,
+  // flagging on, review screen shown) so existing documents decode
+  // unchanged.
+  final bool allowBackNavigation;
+  final bool allowFlagging;
+  final bool allowSkipping;
+  final bool requireReviewBeforeSubmit;
+  final bool showResultsImmediately;
+
   const ExamModel({
     required this.examId,
     required this.title,
@@ -65,6 +75,11 @@ class ExamModel extends Equatable implements FirestoreModel {
     this.offlineAvailable = false,
     this.proctoringEnabled = false,
     this.supportedModes = const [ExamMode.official, ExamMode.practice, ExamMode.mock],
+    this.allowBackNavigation = true,
+    this.allowFlagging = true,
+    this.allowSkipping = true,
+    this.requireReviewBeforeSubmit = false,
+    this.showResultsImmediately = true,
   });
 
   factory ExamModel.fromMap(Map<String, dynamic> map, String examId) {
@@ -93,6 +108,11 @@ class ExamModel extends Equatable implements FirestoreModel {
       supportedModes: FirestoreConvert.stringList(map['supportedModes']).isEmpty
           ? const [ExamMode.official, ExamMode.practice, ExamMode.mock]
           : FirestoreConvert.stringList(map['supportedModes']).map(ExamMode.fromId).toList(),
+      allowBackNavigation: map['allowBackNavigation'] as bool? ?? true,
+      allowFlagging: map['allowFlagging'] as bool? ?? true,
+      allowSkipping: map['allowSkipping'] as bool? ?? true,
+      requireReviewBeforeSubmit: map['requireReviewBeforeSubmit'] as bool? ?? false,
+      showResultsImmediately: map['showResultsImmediately'] as bool? ?? true,
     );
   }
 
@@ -119,6 +139,11 @@ class ExamModel extends Equatable implements FirestoreModel {
         'offlineAvailable': offlineAvailable,
         'proctoringEnabled': proctoringEnabled,
         'supportedModes': supportedModes.map((m) => m.id).toList(),
+        'allowBackNavigation': allowBackNavigation,
+        'allowFlagging': allowFlagging,
+        'allowSkipping': allowSkipping,
+        'requireReviewBeforeSubmit': requireReviewBeforeSubmit,
+        'showResultsImmediately': showResultsImmediately,
       };
 
   /// Whether the exam is inside its admin-set availability window right

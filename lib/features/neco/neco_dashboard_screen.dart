@@ -5,14 +5,14 @@ import '../../models/course_model.dart';
 import '../../models/learning_material_model.dart';
 import '../../repositories/course_repository.dart';
 import '../../repositories/learning_material_repository.dart';
-import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../exam_prep/exam_history_screen.dart';
 import '../exam_prep/exam_list_screen.dart';
-import '../exam_prep/performance_placeholder_screen.dart';
+import '../exam_prep/performance_analytics_screen.dart';
 import '../exam_prep/subject_browse_screen.dart';
 import '../learn/learning_materials/material_detail_screen.dart';
 import '../learn/learning_materials/widgets/material_card.dart';
@@ -64,9 +64,7 @@ class NecoDashboardScreen extends StatelessWidget {
                   Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 12),
-              const AppChip(label: 'NECO', icon: Icons.edit_document, accent: AppColors.necoEmerald, selected: true),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -77,31 +75,31 @@ class NecoDashboardScreen extends StatelessWidget {
                 children: [
                   _DashboardTile(
                     icon: Icons.menu_book_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.accentGreen,
                     label: 'Subjects',
                     onTap: () => _openSubjects(context),
                   ),
                   _DashboardTile(
                     icon: Icons.description_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.primaryBlue,
                     label: 'Study Notes',
                     onTap: () => _openSubjects(context, section: CourseSection.notes),
                   ),
                   _DashboardTile(
                     icon: Icons.play_circle_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.secondaryIndigo,
                     label: 'Video Lessons',
                     onTap: () => _openSubjects(context, section: CourseSection.videos),
                   ),
                   _DashboardTile(
                     icon: Icons.edit_note_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.highlightOrange,
                     label: 'Practice Questions',
                     onTap: () => _openSubjects(context, section: CourseSection.practiceQuestions),
                   ),
                   _DashboardTile(
                     icon: Icons.assignment_turned_in_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.accentGreen,
                     label: 'Mock Exams',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -111,7 +109,7 @@ class NecoDashboardScreen extends StatelessWidget {
                   ),
                   _DashboardTile(
                     icon: Icons.quiz_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.secondaryIndigo,
                     label: 'CBT',
                     // Stage 4.6 Part 4 — CBT engine itself isn't built yet
                     // (WAEC's tile has the same forward reference); this
@@ -121,37 +119,47 @@ class NecoDashboardScreen extends StatelessWidget {
                   ),
                   _DashboardTile(
                     icon: Icons.history_edu_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.primaryBlue,
                     label: 'Past Questions',
                     onTap: () => _openSubjects(context, section: CourseSection.pastQuestions),
                   ),
                   _DashboardTile(
                     icon: Icons.style_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.secondaryIndigo,
                     label: 'Flashcards',
                     onTap: () => _openSubjects(context, section: CourseSection.flashcards),
                   ),
                   _DashboardTile(
                     icon: Icons.insights_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.highlightOrange,
                     label: 'Performance',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const PerformancePlaceholderScreen(title: 'NECO Performance'),
+                        builder: (_) => PerformanceAnalyticsScreen(examTypeId: ExamType.neco.id, title: 'NECO Performance'),
                       ),
                     ),
                   ),
                   _DashboardTile(
                     icon: Icons.rule_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.accentGreen,
                     label: 'Syllabus',
                     onTap: () => _openSubjects(context, section: CourseSection.syllabus),
                   ),
                   _DashboardTile(
                     icon: Icons.download_rounded,
-                    accent: AppColors.necoEmerald,
+                    accent: AppColors.primaryBlue,
                     label: 'Downloads',
                     onTap: () => _openSubjects(context, section: CourseSection.downloads),
+                  ),
+                  _DashboardTile(
+                    icon: Icons.history_rounded,
+                    accent: AppColors.secondaryIndigo,
+                    label: 'History',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ExamHistoryScreen(examTypeId: ExamType.neco.id, title: 'NECO History'),
+                      ),
+                    ),
                   ),
                 ],
               ),

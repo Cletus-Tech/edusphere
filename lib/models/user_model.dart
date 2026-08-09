@@ -44,16 +44,6 @@ class UserModel extends Equatable implements FirestoreModel {
   final bool isSuspended;
   final DateTime? updatedAt;
 
-  // --- Stage 4.8C: premium subscription -----------------------------------
-  // Admin-controlled per the CBT Engine Core spec ("Premium logic must
-  // never be hardcoded") — an admin (or a future payment webhook) sets
-  // these, features just read [isPremiumActive]. `premiumExpiresAt: null`
-  // with `isPremium: true` means an admin-granted permanent premium
-  // (e.g. staff/scholarship), not an oversight — [isPremiumActive] treats
-  // a null expiry as "doesn't expire" rather than "already expired".
-  final bool isPremium;
-  final DateTime? premiumExpiresAt;
-
   const UserModel({
     required this.uid,
     required this.fullName,
@@ -75,8 +65,6 @@ class UserModel extends Equatable implements FirestoreModel {
     this.isVerified = false,
     this.isSuspended = false,
     this.updatedAt,
-    this.isPremium = false,
-    this.premiumExpiresAt,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String uid) {
@@ -106,8 +94,6 @@ class UserModel extends Equatable implements FirestoreModel {
       isVerified: map['isVerified'] as bool? ?? false,
       isSuspended: map['isSuspended'] as bool? ?? false,
       updatedAt: FirestoreConvert.dateTimeOrNull(map['updatedAt']),
-      isPremium: map['isPremium'] as bool? ?? false,
-      premiumExpiresAt: FirestoreConvert.dateTimeOrNull(map['premiumExpiresAt']),
     );
   }
 
@@ -133,8 +119,6 @@ class UserModel extends Equatable implements FirestoreModel {
       'isVerified': isVerified,
       'isSuspended': isSuspended,
       'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
-      'isPremium': isPremium,
-      if (premiumExpiresAt != null) 'premiumExpiresAt': Timestamp.fromDate(premiumExpiresAt!),
     };
   }
 
@@ -155,8 +139,6 @@ class UserModel extends Equatable implements FirestoreModel {
     Map<String, dynamic>? notificationSettings,
     bool? isVerified,
     bool? isSuspended,
-    bool? isPremium,
-    DateTime? premiumExpiresAt,
   }) {
     return UserModel(
       uid: uid,
@@ -179,16 +161,10 @@ class UserModel extends Equatable implements FirestoreModel {
       isVerified: isVerified ?? this.isVerified,
       isSuspended: isSuspended ?? this.isSuspended,
       updatedAt: DateTime.now(),
-      isPremium: isPremium ?? this.isPremium,
-      premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
     );
   }
 
   bool hasRole(UserRole role) => roles.contains(role);
-
-  /// Whether premium access is usable right now — true if granted and
-  /// either permanent (`premiumExpiresAt == null`) or not yet expired.
-  bool get isPremiumActive => isPremium && (premiumExpiresAt == null || DateTime.now().isBefore(premiumExpiresAt!));
 
   @override
   String get id => uid;
@@ -211,7 +187,5 @@ class UserModel extends Equatable implements FirestoreModel {
         programme,
         isVerified,
         isSuspended,
-        isPremium,
-        premiumExpiresAt,
       ];
 }

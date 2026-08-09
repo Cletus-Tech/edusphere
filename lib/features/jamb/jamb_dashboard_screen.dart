@@ -5,14 +5,14 @@ import '../../models/course_model.dart';
 import '../../models/learning_material_model.dart';
 import '../../repositories/course_repository.dart';
 import '../../repositories/learning_material_repository.dart';
-import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../exam_prep/exam_history_screen.dart';
 import '../exam_prep/exam_list_screen.dart';
-import '../exam_prep/performance_placeholder_screen.dart';
+import '../exam_prep/performance_analytics_screen.dart';
 import '../exam_prep/study_plan_placeholder_screen.dart';
 import '../exam_prep/subject_browse_screen.dart';
 import '../learn/learning_materials/material_detail_screen.dart';
@@ -32,7 +32,8 @@ import '../university/course_detail_screen.dart';
 /// reuse existing generic pieces rather than inventing new systems:
 /// - **Study Plan** → new [StudyPlanPlaceholderScreen] (honest
 ///   placeholder — no scheduling system exists anywhere in the app;
-///   same pattern as [PerformancePlaceholderScreen]).
+///   Performance was the same honest-placeholder pattern until Stage
+///   4.8B Part 5 replaced it with [PerformanceAnalyticsScreen]).
 /// - **Recommended Materials** → the new `CourseSection.recommended`
 ///   tag added to [CourseSection] this stage, same tag-based approach
 ///   `syllabus` already used — an admin tags a material `recommended`
@@ -64,9 +65,7 @@ class JambDashboardScreen extends StatelessWidget {
                   Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 12),
-              const AppChip(label: 'JAMB', icon: Icons.assignment_rounded, accent: AppColors.accentViolet, selected: true),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -77,37 +76,37 @@ class JambDashboardScreen extends StatelessWidget {
                 children: [
                   _DashboardTile(
                     icon: Icons.menu_book_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.accentGreen,
                     label: 'Subjects',
                     onTap: () => _openSubjects(context),
                   ),
                   _DashboardTile(
                     icon: Icons.rule_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.primaryBlue,
                     label: 'Syllabus',
                     onTap: () => _openSubjects(context, section: CourseSection.syllabus),
                   ),
                   _DashboardTile(
                     icon: Icons.quiz_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.secondaryIndigo,
                     label: 'CBT',
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.cbt),
                   ),
                   _DashboardTile(
                     icon: Icons.edit_note_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.highlightOrange,
                     label: 'Practice',
                     onTap: () => _openSubjects(context, section: CourseSection.practiceQuestions),
                   ),
                   _DashboardTile(
                     icon: Icons.history_edu_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.accentGreen,
                     label: 'Past Questions',
                     onTap: () => _openSubjects(context, section: CourseSection.pastQuestions),
                   ),
                   _DashboardTile(
                     icon: Icons.assignment_turned_in_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.primaryBlue,
                     label: 'Mock Exams',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -117,17 +116,17 @@ class JambDashboardScreen extends StatelessWidget {
                   ),
                   _DashboardTile(
                     icon: Icons.insights_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.secondaryIndigo,
                     label: 'Performance',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const PerformancePlaceholderScreen(title: 'JAMB Performance'),
+                        builder: (_) => PerformanceAnalyticsScreen(examTypeId: ExamType.jamb.id, title: 'JAMB Performance'),
                       ),
                     ),
                   ),
                   _DashboardTile(
                     icon: Icons.event_note_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.highlightOrange,
                     label: 'Study Plan',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -137,9 +136,19 @@ class JambDashboardScreen extends StatelessWidget {
                   ),
                   _DashboardTile(
                     icon: Icons.star_rounded,
-                    accent: AppColors.accentViolet,
+                    accent: AppColors.accentGreen,
                     label: 'Recommended',
                     onTap: () => _openSubjects(context, section: CourseSection.recommended),
+                  ),
+                  _DashboardTile(
+                    icon: Icons.history_rounded,
+                    accent: AppColors.primaryBlue,
+                    label: 'History',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ExamHistoryScreen(examTypeId: ExamType.jamb.id, title: 'JAMB History'),
+                      ),
+                    ),
                   ),
                 ],
               ),

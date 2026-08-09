@@ -9,7 +9,6 @@ import '../../repositories/institution_repository.dart';
 import '../../repositories/learning_material_repository.dart';
 import '../../repositories/user_repository.dart';
 import '../../services/firebase/auth_service.dart';
-import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
@@ -55,13 +54,6 @@ class UniversityDashboardScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const AppChip(
-                          label: 'University',
-                          icon: Icons.account_balance_rounded,
-                          accent: AppColors.primaryBlue,
-                          selected: true,
-                        ),
-                        const SizedBox(height: 16),
                         _QuickActionsRow(
                           onBrowse: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const InstitutionBrowseScreen()),

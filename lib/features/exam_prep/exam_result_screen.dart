@@ -5,6 +5,7 @@ import '../../shared/widgets/custom_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import 'exam_review_screen.dart';
 
 /// Stage 4.8C Part 1 — shown once [ExamRunnerScreen] submits and scores
 /// a session. Deliberately reads only the already-computed
@@ -18,9 +19,47 @@ class ExamResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final passColor = attempt.passed ? AppColors.success : AppColors.error;
     final titleColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
     final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
+
+    if (!exam.showResultsImmediately) {
+      return Scaffold(
+        appBar: AppBar(title: Text(exam.title), automaticallyImplyLeading: false),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.hourglass_top_rounded, size: 48, color: bodyColor),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Submission received',
+                    style: AppTextStyles.headlineSmall(titleColor),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your answers were recorded. This exam releases results after admin review — '
+                    "you'll be notified once yours is available.",
+                    style: AppTextStyles.bodyMedium(bodyColor),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+                    child: const Text('Done'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final passColor = attempt.passed ? AppColors.success : AppColors.error;
 
     return Scaffold(
       appBar: AppBar(title: Text(exam.title), automaticallyImplyLeading: false),
@@ -123,6 +162,17 @@ class ExamResultScreen extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 24),
+            OutlinedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ExamReviewScreen(exam: exam, attempt: attempt)),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('Review Answers'),
+              ),
+            ),
+            const SizedBox(height: 12),
             ElevatedButton(
               // This screen replaces ExamRunnerScreen in the stack (see
               // the pushReplacement in _submitExam), so a single pop

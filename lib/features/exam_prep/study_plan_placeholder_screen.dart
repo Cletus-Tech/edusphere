@@ -3,7 +3,8 @@ import '../../shared/widgets/feature_placeholder.dart';
 import '../../theme/app_colors.dart';
 
 /// Stage 4.7 — no study-plan/scheduling system exists anywhere in
-/// EduSphere yet, same gap [PerformancePlaceholderScreen] documents for
+/// EduSphere yet, same gap Performance Analytics had until Stage 4.8B
+/// Part 5 (see [PerformanceAnalyticsScreen]) — this one is still open.
 /// progress tracking. An honest placeholder rather than a fabricated
 /// plan with no real data behind it. Generic (not JAMB-specific) so
 /// WAEC/NECO/University can reuse it directly once they want a Study

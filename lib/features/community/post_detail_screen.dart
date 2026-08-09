@@ -121,10 +121,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       : IconButton(
                           onPressed: _sendComment,
                           icon: const Icon(Icons.send_rounded),
-                          // Stage B6 — matches Community's accentPurple
-                          // identity (community_screen.dart's FAB,
-                          // post_card.dart's bookmark state).
-                          color: AppColors.accentPurple,
+                          color: AppColors.primaryBlue,
                         ),
                 ],
               ),

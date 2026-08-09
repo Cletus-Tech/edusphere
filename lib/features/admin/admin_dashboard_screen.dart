@@ -5,6 +5,7 @@ import '../../theme/app_text_styles.dart';
 import 'app_settings/admin_app_settings_screen.dart';
 import 'academic_structure/academic_structure_screen.dart';
 import 'audit_log/audit_log_screen.dart';
+import 'exam_prep/exam_manager_screen.dart';
 import 'exam_prep/subject_manager_screen.dart';
 import 'learning_materials/admin_learning_materials_screen.dart';
 import 'moderation/moderation_screen.dart';
@@ -92,11 +93,20 @@ class AdminDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _AdminModuleTile(
+            icon: Icons.quiz_rounded,
+            accent: AppColors.primaryBlue,
+            title: 'Exams',
+            description: 'Configure exams and questions for the CBT Engine — JAMB, WAEC, NECO, '
+                'university courses, and practice tests all share this.',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ExamManagerScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _AdminModuleTile(
             icon: Icons.menu_book_rounded,
-            // Stage B7 — was `accentGreen` (a generic color, also used
-            // by two other unrelated tiles above). Matches WAEC's own
-            // dashboard identity color from B5 instead.
-            accent: AppColors.accentTeal,
+            accent: AppColors.accentGreen,
             title: 'WAEC Subjects',
             description: 'Add and manage subjects for the WAEC module. Study materials, '
                 'syllabus, and past questions are managed from Learning Materials.',
@@ -110,9 +120,7 @@ class AdminDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _AdminModuleTile(
             icon: Icons.edit_document,
-            // Stage B7 — matches NECO's B5 dashboard identity color
-            // (was `highlightOrange`, also reused by Moderation above).
-            accent: AppColors.necoEmerald,
+            accent: AppColors.highlightOrange,
             title: 'NECO Subjects',
             description: 'Add and manage subjects for the NECO module. Study materials, '
                 'syllabus, and past questions are managed from Learning Materials.',
@@ -126,10 +134,7 @@ class AdminDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _AdminModuleTile(
             icon: Icons.assignment_rounded,
-            // Stage B7 — matches JAMB's B5 dashboard identity color
-            // (was `secondaryIndigo`, also reused by Audit Log and
-            // Users & Roles above — JAMB gets its own token instead).
-            accent: AppColors.accentViolet,
+            accent: AppColors.secondaryIndigo,
             title: 'JAMB Subjects',
             description: 'Add and manage subjects for the JAMB module. Study materials, '
                 'syllabus, and past questions are managed from Learning Materials.',

@@ -23,32 +23,6 @@ class AppShadows {
       offset: const Offset(0, 8),
     ),
   ];
-
-  // Stage B1 — a slightly stronger tier for featured/elevated cards
-  // (brief's "different visual levels" ask), distinct from [soft]
-  // rather than replacing it, since most cards should keep the
-  // existing subtle look.
-  static List<BoxShadow> elevated = [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.10),
-      blurRadius: 28,
-      offset: const Offset(0, 12),
-    ),
-  ];
-}
-
-/// Stage B1 — a named spacing scale so later stages can write
-/// `AppSpacing.md` instead of a bare `SizedBox(height: 16)`. Values
-/// match the gaps already used ad hoc throughout the app (8/12/16/
-/// 20/24), so adopting this is a naming convention, not a re-layout.
-class AppSpacing {
-  AppSpacing._();
-  static const double xs = 4;
-  static const double sm = 8;
-  static const double md = 16;
-  static const double lg = 20;
-  static const double xl = 24;
-  static const double xxl = 32;
 }
 
 class AppTheme {
@@ -144,16 +118,6 @@ class AppTheme {
       elevation: 12,
     ),
     dividerColor: const Color(0xFFE2E8F0),
-    // Stage B1 — a single consistent transition (shared with dark
-    // theme below) on both platforms instead of each OS's default
-    // (Android's zoom/fade vs. iOS's slide), so navigating feels the
-    // same everywhere rather than platform-inconsistent.
-    pageTransitionsTheme: const PageTransitionsTheme(
-      builders: {
-        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-      },
-    ),
   );
 
   static ThemeData dark = ThemeData(
@@ -246,11 +210,5 @@ class AppTheme {
       elevation: 12,
     ),
     dividerColor: const Color(0xFF334155),
-    pageTransitionsTheme: const PageTransitionsTheme(
-      builders: {
-        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-      },
-    ),
   );
 }

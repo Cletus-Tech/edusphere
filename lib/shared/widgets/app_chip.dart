@@ -11,26 +11,18 @@ class AppChip extends StatelessWidget {
   final Color accent;
   final VoidCallback? onTap;
 
-  /// Stage B2 — optional leading icon (e.g. a crown for "Premium", a
-  /// content-type icon for "PDF"/"Video"). Existing call sites that
-  /// don't pass this are unaffected — the chip lays out exactly as
-  /// before.
-  final IconData? icon;
-
   const AppChip({
     super.key,
     required this.label,
     this.selected = false,
     this.accent = AppColors.primaryBlue,
     this.onTap,
-    this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ??
         AppColors.textSecondary;
-    final contentColor = selected ? Colors.white : bodyColor;
 
     return GestureDetector(
       onTap: onTap,
@@ -41,19 +33,10 @@ class AppChip extends StatelessWidget {
           color: selected ? accent : accent.withOpacity(0.08),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 14, color: contentColor),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              style: AppTextStyles.bodySmall(contentColor)
-                  .copyWith(fontWeight: FontWeight.w600),
-            ),
-          ],
+        child: Text(
+          label,
+          style: AppTextStyles.bodySmall(selected ? Colors.white : bodyColor)
+              .copyWith(fontWeight: FontWeight.w600),
         ),
       ),
     );

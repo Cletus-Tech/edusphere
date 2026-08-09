@@ -226,27 +226,14 @@ class _ProfileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bodyLarge =
-        Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.textPrimary;
-    // Stage B6 — a purpose-tinted circular icon tile instead of a flat
-    // bare icon, matching the same `.withOpacity(0.12)` tinted-circle
-    // convention already used for content-type icons elsewhere (e.g.
-    // the Library's search-result tiles). Destructive tiles (Logout,
-    // which passes `color: AppColors.error`) keep reading as
-    // "warning" via the tint; every other tile uses `primaryBlue` —
-    // Profile isn't a distinct "module" the way JAMB/WAEC/NECO/
-    // Community are, so it reuses the app's core brand color rather
-    // than claiming a new accent for a one-off list of tiles.
-    final tint = color ?? AppColors.primaryBlue;
+    final textColor = color ??
+        Theme.of(context).textTheme.bodyLarge?.color ??
+        AppColors.textPrimary;
 
     return ListTile(
       onTap: onTap ?? () {},
-      leading: CircleAvatar(
-        radius: 18,
-        backgroundColor: tint.withOpacity(0.12),
-        child: Icon(icon, color: tint, size: 20),
-      ),
-      title: Text(label, style: AppTextStyles.bodyLarge(color ?? bodyLarge)),
+      leading: Icon(icon, color: textColor, size: 22),
+      title: Text(label, style: AppTextStyles.bodyLarge(textColor)),
       trailing: color == null
           ? const Icon(Icons.chevron_right_rounded, size: 20)
           : null,

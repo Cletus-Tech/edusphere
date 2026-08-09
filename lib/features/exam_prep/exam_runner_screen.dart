@@ -6,7 +6,6 @@ import '../../models/exam_session_model.dart';
 import '../../repositories/learning_repository.dart';
 import '../../services/firebase/auth_service.dart';
 import '../../shared/widgets/state_views.dart';
-import '../../theme/app_animations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
@@ -35,7 +34,14 @@ import 'exam_scoring.dart';
 class ExamRunnerScreen extends StatefulWidget {
   final ExamModel exam;
 
-  const ExamRunnerScreen({super.key, required this.exam});
+  /// When set, the runner starts a fresh practice session scoped to
+  /// exactly these question ids instead of the exam's full bank, and
+  /// never resumes an existing session (a retry is always a new
+  /// attempt). Used by [ExamReviewScreen]'s "Retry incorrect" action —
+  /// spec section 15.
+  final List<String>? questionIdsOverride;
+
+  const ExamRunnerScreen({super.key, required this.exam, this.questionIdsOverride});
 
   @override
   State<ExamRunnerScreen> createState() => _ExamRunnerScreenState();
@@ -83,7 +89,11 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
     }
 
     final bankLimit = widget.exam.totalQuestions > 0 ? widget.exam.totalQuestions : 50;
-    final bank = await _questionRepo.fetchPageForExam(widget.exam.examId, limit: bankLimit);
+    final fullBank = await _questionRepo.fetchPageForExam(widget.exam.examId, limit: bankLimit);
+    final override = widget.questionIdsOverride;
+    final bank = override == null
+        ? fullBank
+        : fullBank.where((q) => override.contains(q.questionId)).toList();
     if (bank.isEmpty) {
       setState(() {
         _loading = false;
@@ -93,7 +103,10 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
     }
     final byId = {for (final q in bank) q.questionId: q};
 
-    var session = await _sessionRepo.findResumableSession(uid, widget.exam.examId);
+    // A retry (questionIdsOverride set) always starts a brand-new
+    // session scoped to just those questions — resuming an old session
+    // here would pull back the full original bank, defeating the point.
+    var session = override == null ? await _sessionRepo.findResumableSession(uid, widget.exam.examId) : null;
 
     if (session == null) {
       final order = bank.map((q) => q.questionId).toList();
@@ -283,6 +296,7 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
   }
 
   void _jumpTo(int index) {
+    if (!widget.exam.allowBackNavigation && index < _currentIndex) return;
     setState(() => _currentIndex = index);
     _markVisited(index);
     _autoSave();
@@ -350,22 +364,9 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
     final isBookmarked = session.bookmarkedQuestionIds.contains(question.questionId);
     final displayOrder = (session.optionOrder[question.questionId] as List?)?.map((e) => e as int).toList();
     final isTimed = session.mode != ExamMode.practice;
-    final remaining = session.remainingSeconds ?? widget.exam.durationMinutes * 60;
-    final clockLabel = isTimed ? _formatClock(remaining) : _formatClock(_elapsedSeconds);
-    // Stage B7 — three-tier time-pressure color instead of a binary
-    // normal/red split: `warningAmber` (defined in B1, unused anywhere
-    // until now) fills the "getting low" gap between "plenty of time"
-    // and the existing hard-red "under a minute" state. Purely a
-    // display threshold on the same `remainingSeconds` the timer
-    // already ticks down — no new state, no change to when auto-submit
-    // actually fires.
-    final Color clockColor = !isTimed
-        ? AppColors.textSecondary
-        : remaining < 60
-            ? AppColors.error
-            : remaining < 300
-                ? AppColors.warningAmber
-                : AppColors.textSecondary;
+    final clockLabel = isTimed
+        ? _formatClock(session.remainingSeconds ?? widget.exam.durationMinutes * 60)
+        : _formatClock(_elapsedSeconds);
 
     return PopScope(
       canPop: false,
@@ -391,27 +392,18 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
               ),
             IconButton(
               tooltip: isBookmarked ? 'Remove bookmark' : 'Bookmark question',
-              icon: Icon(
-                isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                // Stage B7 — bookmark previously had no active-state
-                // color at all (identical icon color whether on or
-                // off, distinguishable only by shape). Flag already
-                // gets highlightOrange when active; bookmark gets its
-                // own token so the two "marked for later" signals
-                // next to each other in the AppBar read as visually
-                // distinct, not as one repeated treatment.
-                color: isBookmarked ? AppColors.accentCyan : null,
-              ),
+              icon: Icon(isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded),
               onPressed: () => _toggleBookmark(question.questionId),
             ),
-            IconButton(
-              tooltip: isFlagged ? 'Remove flag' : 'Flag for review',
-              icon: Icon(
-                isFlagged ? Icons.flag_rounded : Icons.flag_outlined,
-                color: isFlagged ? AppColors.highlightOrange : null,
+            if (widget.exam.allowFlagging)
+              IconButton(
+                tooltip: isFlagged ? 'Remove flag' : 'Flag for review',
+                icon: Icon(
+                  isFlagged ? Icons.flag_rounded : Icons.flag_outlined,
+                  color: isFlagged ? AppColors.highlightOrange : null,
+                ),
+                onPressed: () => _toggleFlag(question.questionId),
               ),
-              onPressed: () => _toggleFlag(question.questionId),
-            ),
             TextButton(
               onPressed: () => _submitExam(),
               child: Text(
@@ -430,10 +422,17 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
                   Icon(
                     isTimed ? Icons.timer_outlined : Icons.schedule_outlined,
                     size: 16,
-                    color: clockColor,
+                    color: isTimed && (session.remainingSeconds ?? 999) < 60
+                        ? AppColors.error
+                        : AppColors.textSecondary,
                   ),
                   const SizedBox(width: 6),
-                  Text(clockLabel, style: AppTextStyles.bodySmall(clockColor)),
+                  Text(
+                    clockLabel,
+                    style: AppTextStyles.bodySmall(
+                      isTimed && (session.remainingSeconds ?? 999) < 60 ? AppColors.error : AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -463,8 +462,9 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
                 ),
               ),
               _NavBar(
-                canGoPrevious: _currentIndex > 0,
-                canGoNext: _currentIndex < _questions.length - 1,
+                canGoPrevious: widget.exam.allowBackNavigation && _currentIndex > 0,
+                canGoNext: _currentIndex < _questions.length - 1 &&
+                    (widget.exam.allowSkipping || session.answers[question.questionId] != null),
                 onPrevious: _goPrevious,
                 onNext: _goNext,
               ),
@@ -530,25 +530,13 @@ class _QuestionNavigator extends StatelessWidget {
 
           return GestureDetector(
             onTap: () => onJump(index),
-            // Stage B7 — AnimatedContainer with the existing
-            // AppAnimations.fast constant so jumping between questions
-            // (or a question flipping from unanswered -> answered)
-            // transitions its color/border smoothly instead of
-            // snapping, matching the "smooth but subtle transitions"
-            // direction set in B3. Current question also gets a ring
-            // (border, not just a fill) so it's identifiable even for
-            // someone who can't distinguish the fill color itself.
-            child: AnimatedContainer(
-              duration: AppAnimations.fast,
-              curve: AppAnimations.standard,
+            child: Container(
               width: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: background,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                border: isCurrent
-                    ? Border.all(color: AppColors.primaryBlue, width: 2)
-                    : (isFlagged ? Border.all(color: AppColors.highlightOrange) : null),
+                border: isFlagged && !isCurrent ? Border.all(color: AppColors.highlightOrange) : null,
               ),
               child: Text('${index + 1}', style: TextStyle(color: foreground, fontWeight: FontWeight.w600)),
             ),

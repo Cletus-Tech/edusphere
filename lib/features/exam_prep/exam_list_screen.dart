@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/utils/result.dart';
 import '../../models/exam_model.dart';
 import '../../repositories/learning_repository.dart';
-import '../../repositories/user_repository.dart';
 import '../../services/firebase/auth_service.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/state_views.dart';
@@ -54,24 +52,6 @@ class ExamListScreen extends StatelessWidget {
     if (uid == null) {
       if (context.mounted) _showBlockedDialog(context, 'Sign in required', 'You need to be signed in to start an exam.');
       return;
-    }
-
-    if (exam.isPremium) {
-      final userResult = await UserRepository().getById(uid);
-      final user = switch (userResult) {
-        Success(data: final data) => data,
-        Failure() => null,
-      };
-      if (user == null || !user.isPremiumActive) {
-        if (context.mounted) {
-          _showBlockedDialog(
-            context,
-            'Premium exam',
-            'This exam is only available to premium members. Upgrade to unlock it.',
-          );
-        }
-        return;
-      }
     }
 
     // Resuming an existing attempt is never blocked by the attempt

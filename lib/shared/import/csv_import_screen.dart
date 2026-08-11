@@ -66,9 +66,15 @@ class _CsvImportScreenState<T> extends State<CsvImportScreen<T>> {
     // `parseRow` would have nothing to resolve against.
     final spec = widget.spec;
     if (spec is PreparableImportSpec) {
+      // Explicit cast rather than relying on `is`-promotion: Dart's flow
+      // typing doesn't reliably promote a generically-typed variable
+      // (`spec` is `CsvImportSpec<T>`) to an unrelated interface, even
+      // right after a matching `is` check — this cast sidesteps that
+      // instead of depending on it.
+      final preparable = spec as PreparableImportSpec;
       setState(() => _preparing = true);
       try {
-        await spec.prepare();
+        await preparable.prepare();
       } catch (e) {
         if (!mounted) return;
         setState(() => _preparing = false);

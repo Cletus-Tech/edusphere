@@ -11,6 +11,7 @@ import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/state_views.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
+import 'bulk_course_import_screen.dart';
 
 /// Manages `courses/{courseId}` for one department + level + semester —
 /// the bottom of the Stage 4.3 academic hierarchy drill-down from
@@ -157,7 +158,19 @@ class _CourseManagerScreenState extends State<CourseManagerScreen> {
     final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Courses')),
+      appBar: AppBar(
+        title: const Text('Courses'),
+        actions: [
+          IconButton(
+            tooltip: 'Bulk import courses — not limited to this list; each row names its own '
+                'institution/faculty/department/level/semester',
+            icon: const Icon(Icons.upload_file_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BulkCourseImportScreen()),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(),
         child: const Icon(Icons.add_rounded),

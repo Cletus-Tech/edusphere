@@ -5,6 +5,7 @@ import '../../theme/app_text_styles.dart';
 import 'app_settings/admin_app_settings_screen.dart';
 import 'academic_structure/academic_structure_screen.dart';
 import 'audit_log/audit_log_screen.dart';
+import 'creator_profile/creator_profile_management_screen.dart';
 import 'exam_prep/exam_manager_screen.dart';
 import 'exam_prep/subject_manager_screen.dart';
 import 'learning_materials/admin_learning_materials_screen.dart';
@@ -154,6 +155,18 @@ class AdminDashboardScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AdminAppSettingsScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _AdminModuleTile(
+            icon: Icons.badge_rounded,
+            accent: AppColors.primaryBlue,
+            title: 'Creator Profile',
+            description: 'Manage the public "About the Owner" page — bio, skills, achievements, '
+                'projects, documents, and contact links.',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CreatorProfileManagementScreen()),
             ),
           ),
         ],

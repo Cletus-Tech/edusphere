@@ -13,6 +13,7 @@ import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../creator_profile/creator_profile_screen.dart';
 import 'academic_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -107,6 +108,19 @@ class ProfileScreen extends StatelessWidget {
                 const _ProfileTile(
                     icon: Icons.help_outline_rounded,
                     label: 'Help & Support'),
+                _divider(),
+                // Stage 6.3 — Creator Profile ("About the Owner") entry
+                // point. Same onTap/MaterialPageRoute wiring as
+                // "Academic Profile" above, not a named route — matches
+                // how every other detail screen in this app is pushed.
+                _ProfileTile(
+                  icon: Icons.badge_outlined,
+                  label: 'About EduSphere',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CreatorProfileScreen()),
+                  ),
+                ),
               ],
             ),
           ),

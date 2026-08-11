@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/routes/app_routes.dart';
+import '../../core/enums/content_type.dart';
 import '../../models/course_model.dart';
 import '../../models/institution_model.dart';
 import '../../models/learning_material_model.dart';
@@ -9,6 +9,7 @@ import '../../repositories/institution_repository.dart';
 import '../../repositories/learning_material_repository.dart';
 import '../../repositories/user_repository.dart';
 import '../../services/firebase/auth_service.dart';
+import '../exam_prep/exam_list_screen.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
@@ -58,7 +59,11 @@ class UniversityDashboardScreen extends StatelessWidget {
                           onBrowse: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const InstitutionBrowseScreen()),
                           ),
-                          onCbt: () => Navigator.of(context).pushNamed(AppRoutes.cbt),
+                          onCbt: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ExamListScreen(examTypeId: ExamType.postUtme.id, title: 'Post-UTME Practice'),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 24),
                         if (profile?.institutionId != null && profile!.institutionId!.isNotEmpty) ...[

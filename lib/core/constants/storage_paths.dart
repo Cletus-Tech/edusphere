@@ -64,6 +64,14 @@ class StoragePaths {
   static String marketplaceListing(String listingId, String fileName) =>
       'marketplace/$listingId/$fileName';
 
+  // Stage 6.3 — Creator Profile module.
+  static String creatorProfileImage(String fileName) => 'creator_profile/profile/$fileName';
+  static String creatorCoverImage(String fileName) => 'creator_profile/cover/$fileName';
+  static String creatorDocument(String documentId, String fileName) =>
+      'creator_profile/documents/$documentId/$fileName';
+  static String creatorProjectImage(String projectId, String fileName) =>
+      'creator_profile/projects/$projectId/$fileName';
+
   /// Fallback for one-off/admin uploads that don't fit a helper above yet.
   /// Prefer adding a named helper instead of calling this directly.
   static String custom(String folder, String fileName) => '$folder/$fileName';

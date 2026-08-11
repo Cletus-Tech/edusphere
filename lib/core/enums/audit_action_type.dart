@@ -134,6 +134,8 @@ class AuditModules {
   // Stage 4.5 — Exam prep boards (WAEC now; NECO/JAMB reuse this same
   // module id rather than getting one each).
   static const String examPrep = 'exam_prep';
+  // Stage 6.3 — Creator Profile module.
+  static const String creatorProfile = 'creator_profile';
 
   static const List<String> all = [
     learningMaterials,
@@ -147,6 +149,7 @@ class AuditModules {
     featureFlags,
     academicStructure,
     examPrep,
+    creatorProfile,
   ];
 
   static String label(String id) => switch (id) {

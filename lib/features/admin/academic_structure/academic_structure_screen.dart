@@ -13,6 +13,9 @@ import '../../../shared/widgets/state_views.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import 'academic_node_manager_screen.dart';
+import 'bulk_academic_node_import_screen.dart';
+import 'bulk_course_import_screen.dart';
+import 'bulk_institution_import_screen.dart';
 import 'course_manager_screen.dart';
 
 /// Top of the academic hierarchy — Stage 4.3. Institutions list here;
@@ -229,7 +232,32 @@ class _AcademicStructureScreenState extends State<AcademicStructureScreen> {
     final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Academic Structure')),
+      appBar: AppBar(
+        title: const Text('Academic Structure'),
+        actions: [
+          IconButton(
+            tooltip: 'Bulk import institutions',
+            icon: const Icon(Icons.upload_file_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BulkInstitutionImportScreen()),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Bulk import faculties/departments/levels/semesters',
+            icon: const Icon(Icons.account_tree_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BulkAcademicNodeImportScreen()),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Bulk import courses',
+            icon: const Icon(Icons.menu_book_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BulkCourseImportScreen()),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(),
         child: const Icon(Icons.add_rounded),

@@ -39,6 +39,20 @@ service firebase.storage {
         );
     }
 
+    // Stage 6.3 — stricter than isStaffFirestore(): the Creator Profile
+    // is the app owner's personal CMS, not general course/institution
+    // content, so it's gated to admin/superAdmin only, not the full
+    // staff list. Mirrors firestore.rules' isAdmin() (superAdmin ||
+    // admin) exactly, same cross-service firestore.get() approach and
+    // same 2-unique-document-per-evaluation budget as isStaffFirestore()
+    // above (both read the same cached users/{uid} doc).
+    function isAdminFirestore() {
+      return isSignedIn() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.roles.hasAny(
+          ['admin', 'superAdmin']
+        );
+    }
+
     match /users/{userId}/{allPaths=**} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId);
@@ -63,6 +77,11 @@ service firebase.storage {
     match /learning_materials/{allPaths=**} { allow read: if isSignedIn(); allow write: if isStaffFirestore(); }
     match /images/{allPaths=**}       { allow read: if true; allow write: if isSignedIn(); }
     match /banners/{allPaths=**}      { allow read: if true; allow write: if isStaffFirestore(); }
+
+    // Stage 6.3 — Creator Profile ("About the Owner") uploads. Public
+    // read (public-facing About page, matches firestore.rules'
+    // creator_* collections), admin-only write via isAdminFirestore().
+    match /creator_profile/{allPaths=**} { allow read: if true; allow write: if isAdminFirestore(); }
 
     match /community/{allPaths=**} {
       allow read: if isSignedIn();

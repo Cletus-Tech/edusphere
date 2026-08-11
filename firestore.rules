@@ -132,6 +132,16 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ---- creator profile ("About the Owner") — Stage 6.3 -------------
+    // Public, unauthenticated read (this is a public-facing About page,
+    // same as `communities` below) — admin-only write. Applies to the
+    // singleton profile doc and every list collection alike.
+    match /creator_profile/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /creator_skills/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /creator_achievements/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /creator_documents/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /creator_projects/{id} { allow read: if true; allow write: if isAdmin(); }
+
     // ---- community --------------------------------------------------
     match /communities/{id} { allow read: if true; allow write: if isAdmin(); }
 

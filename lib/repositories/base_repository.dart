@@ -66,6 +66,24 @@ abstract class BaseRepository<T extends FirestoreModel> {
 
   Future<Result<void>> delete(String id) => _firestoreService.delete(collection: collection, docId: id);
 
+  /// Batch-writes `sortOrder: index` for every id in [orderedIds] (its
+  /// position in the list becomes its new sort position). Generic here
+  /// rather than duplicated per-repository so any collection with a
+  /// `sortOrder` field — Creator Profile's skills/achievements/documents/
+  /// projects (Stage 6.3 Part 2 §9) today, others later — can reuse it.
+  Future<Result<void>> reorderSortOrder(List<String> orderedIds) async {
+    try {
+      final batch = _db.batch();
+      for (var i = 0; i < orderedIds.length; i++) {
+        batch.update(_db.collection(collection).doc(orderedIds[i]), {'sortOrder': i});
+      }
+      await batch.commit();
+      return const Result.success(null);
+    } catch (e) {
+      return resultFailureFrom(e);
+    }
+  }
+
   /// Auto-generates a Firestore-assigned id, useful for `add`-style
   /// creates (posts, comments, reports, ai_history, ...).
   String newId() => _db.collection(collection).doc().id;

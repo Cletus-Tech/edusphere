@@ -39,4 +39,13 @@ class StorageService {
       return Result.failure(e.toString());
     }
   }
+
+  /// Deletes by download URL instead of a storage path — needed by
+  /// callers (Stage 6.3 Part 2 — Creator Profile CMS) that only kept the
+  /// URL a model stores, not the path that produced it. `refFromURL`
+  /// does that translation; on a malformed/already-deleted URL this
+  /// throws, which callers doing best-effort cleanup deliberately swallow.
+  Future<void> deleteByUrl(String url) async {
+    await _storage.refFromURL(url).delete();
+  }
 }

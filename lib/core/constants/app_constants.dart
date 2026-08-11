@@ -98,6 +98,18 @@ class AppConstants {
   static const String appSettingsDoc = 'app_config';
   static const String uploadSettingsDoc = 'uploads';
 
+  // Stage 6.3 — Creator Profile ("About the Owner") module. Named
+  // `creator_achievements`, not `achievements` — that collection
+  // already exists for student gamification (AchievementModel /
+  // AchievementRepository) and reusing it here would mix two
+  // unrelated document shapes together.
+  static const String creatorProfileCollection = 'creator_profile';
+  static const String creatorProfileDoc = 'main';
+  static const String creatorSkillsCollection = 'creator_skills';
+  static const String creatorAchievementsCollection = 'creator_achievements';
+  static const String creatorDocumentsCollection = 'creator_documents';
+  static const String creatorProjectsCollection = 'creator_projects';
+
   // Stage 1.3 — Upload Engine history
   static const String uploadHistoryCollection = 'upload_history';
 

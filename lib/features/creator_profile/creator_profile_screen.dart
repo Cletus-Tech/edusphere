@@ -25,6 +25,9 @@ class CreatorProfileScreen extends StatelessWidget {
       body: StreamBuilder<CreatorProfileModel>(
         stream: repo.watch(),
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return ErrorView(message: 'Could not load this page: ${snapshot.error}');
+          }
           if (!snapshot.hasData) return const LoadingView();
           final profile = snapshot.data!;
           // Admin hasn't published a profile yet — a genuinely empty

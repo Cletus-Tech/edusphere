@@ -32,6 +32,9 @@ class CreatorProfileManagementScreen extends StatelessWidget {
       body: StreamBuilder<CreatorProfileModel>(
         stream: repo.watch(),
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return ErrorView(message: 'Could not load the profile: ${snapshot.error}');
+          }
           if (!snapshot.hasData) return const LoadingView();
           final profile = snapshot.data!;
 

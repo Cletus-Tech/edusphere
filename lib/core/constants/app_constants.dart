@@ -16,16 +16,6 @@ class AppConstants {
   static const String coursesCollection = 'courses';
   static const String categoriesCollection = 'categories';
   static const String postsCollection = 'posts'; // Community
-  static const String progressCollection = 'progress';
-  static const String schoolsCollection = 'schools'; // Universities/Polys/Colleges
-  static const String examBoardsCollection = 'exam_boards'; // JAMB/WAEC/NECO
-  // Unused anywhere in the codebase. Stage 4.8A's CBT Engine uses the
-  // existing `questionsCollection` ('questions') for every exam type —
-  // this constant is NOT the CBT question bank and is kept only so
-  // nothing that already referenced this literal string breaks;
-  // do not wire new code to it (would create the exact duplicate
-  // question-collection situation the CBT spec says to avoid).
-  static const String cbtQuestionsCollection = 'cbt_questions'; // future
   static const String aiConversationsCollection = 'ai_conversations';
   static const String marketplaceCollection = 'marketplace'; // future
   static const String scholarshipsCollection = 'scholarships'; // future

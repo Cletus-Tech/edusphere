@@ -71,7 +71,15 @@ class ProfileScreen extends StatelessWidget {
               ),
               IconButton(
                 tooltip: 'Settings',
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text("Settings isn't available yet."),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.settings_outlined),
               ),
             ],

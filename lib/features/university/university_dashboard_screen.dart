@@ -154,7 +154,7 @@ class _QuickActionsRow extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Text('CBT Practice', style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text('Coming soon', style: TextStyle(fontSize: 12, color: bodyColor)),
+                Text('Post-UTME mock exams', style: TextStyle(fontSize: 12, color: bodyColor)),
               ],
             ),
           ),

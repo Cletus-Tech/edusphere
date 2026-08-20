@@ -379,3 +379,115 @@ class UploadSettingsModel extends Equatable implements FirestoreModel {
   @override
   List<Object?> get props => [maxFileSizeMb, allowedExtensions, maxConcurrentUploads];
 }
+
+/// `settings/cbt` — Stage CBT-3. The **global** counterpart to
+/// [ExamModel]'s per-exam config: whether Practice/Mock are available
+/// at all right now, and the free/trial/premium attempt-limit
+/// *defaults* an exam falls back to when its own `attemptLimit` is
+/// left unset. This never overrides a per-exam `attemptLimit` — that
+/// field, when set, always wins; these are only what applies when it's
+/// not.
+///
+/// Nothing in the engine reads this doc yet — same "configuration
+/// exists, enforcement is a later stage" status [ExamModel.isPremium]
+/// already had as of CBT-2. `requirePremiumForPractice`/
+/// `requirePremiumForMock` are configuration for the future
+/// entitlement system, not active gates, exactly like
+/// [ExamModel.isPremium]. `offlinePracticeEnabled` is the same kind of
+/// reserved switch as [ExamModel.offlineAvailable] — there is still no
+/// sync/replay engine to turn on (see the CBT-1/CBT-2 audits), so this
+/// field controls nothing at runtime; it only reserves the setting so
+/// the admin doesn't lose the choice once that engine exists.
+class CbtSettingsModel extends Equatable implements FirestoreModel {
+  final bool practiceEnabled;
+  final bool mockEnabled;
+  final int? freeAttemptLimit;
+  final int? trialAttemptLimit;
+  final int? premiumAttemptLimit;
+  final bool requirePremiumForPractice;
+  final bool requirePremiumForMock;
+  final int? freeUserQuestionLimit;
+  final bool offlinePracticeEnabled;
+
+  const CbtSettingsModel({
+    this.practiceEnabled = true,
+    this.mockEnabled = true,
+    this.freeAttemptLimit,
+    this.trialAttemptLimit,
+    this.premiumAttemptLimit,
+    this.requirePremiumForPractice = false,
+    this.requirePremiumForMock = false,
+    this.freeUserQuestionLimit,
+    this.offlinePracticeEnabled = false,
+  });
+
+  factory CbtSettingsModel.fromMap(Map<String, dynamic> map) {
+    return CbtSettingsModel(
+      practiceEnabled: map['practiceEnabled'] as bool? ?? true,
+      mockEnabled: map['mockEnabled'] as bool? ?? true,
+      freeAttemptLimit: map['freeAttemptLimit'] as int?,
+      trialAttemptLimit: map['trialAttemptLimit'] as int?,
+      premiumAttemptLimit: map['premiumAttemptLimit'] as int?,
+      requirePremiumForPractice: map['requirePremiumForPractice'] as bool? ?? false,
+      requirePremiumForMock: map['requirePremiumForMock'] as bool? ?? false,
+      freeUserQuestionLimit: map['freeUserQuestionLimit'] as int?,
+      offlinePracticeEnabled: map['offlinePracticeEnabled'] as bool? ?? false,
+    );
+  }
+
+  CbtSettingsModel copyWith({
+    bool? practiceEnabled,
+    bool? mockEnabled,
+    int? freeAttemptLimit,
+    bool clearFreeAttemptLimit = false,
+    int? trialAttemptLimit,
+    bool clearTrialAttemptLimit = false,
+    int? premiumAttemptLimit,
+    bool clearPremiumAttemptLimit = false,
+    bool? requirePremiumForPractice,
+    bool? requirePremiumForMock,
+    int? freeUserQuestionLimit,
+    bool clearFreeUserQuestionLimit = false,
+    bool? offlinePracticeEnabled,
+  }) =>
+      CbtSettingsModel(
+        practiceEnabled: practiceEnabled ?? this.practiceEnabled,
+        mockEnabled: mockEnabled ?? this.mockEnabled,
+        freeAttemptLimit: clearFreeAttemptLimit ? null : (freeAttemptLimit ?? this.freeAttemptLimit),
+        trialAttemptLimit: clearTrialAttemptLimit ? null : (trialAttemptLimit ?? this.trialAttemptLimit),
+        premiumAttemptLimit: clearPremiumAttemptLimit ? null : (premiumAttemptLimit ?? this.premiumAttemptLimit),
+        requirePremiumForPractice: requirePremiumForPractice ?? this.requirePremiumForPractice,
+        requirePremiumForMock: requirePremiumForMock ?? this.requirePremiumForMock,
+        freeUserQuestionLimit: clearFreeUserQuestionLimit ? null : (freeUserQuestionLimit ?? this.freeUserQuestionLimit),
+        offlinePracticeEnabled: offlinePracticeEnabled ?? this.offlinePracticeEnabled,
+      );
+
+  @override
+  Map<String, dynamic> toMap() => {
+        'practiceEnabled': practiceEnabled,
+        'mockEnabled': mockEnabled,
+        'freeAttemptLimit': freeAttemptLimit,
+        'trialAttemptLimit': trialAttemptLimit,
+        'premiumAttemptLimit': premiumAttemptLimit,
+        'requirePremiumForPractice': requirePremiumForPractice,
+        'requirePremiumForMock': requirePremiumForMock,
+        'freeUserQuestionLimit': freeUserQuestionLimit,
+        'offlinePracticeEnabled': offlinePracticeEnabled,
+      };
+
+  @override
+  String get id => 'cbt';
+
+  @override
+  List<Object?> get props => [
+        practiceEnabled,
+        mockEnabled,
+        freeAttemptLimit,
+        trialAttemptLimit,
+        premiumAttemptLimit,
+        requirePremiumForPractice,
+        requirePremiumForMock,
+        freeUserQuestionLimit,
+        offlinePracticeEnabled,
+      ];
+}

@@ -21,16 +21,20 @@ import 'exam_scoring.dart';
 ///
 /// Stage 4.8C Part 1 adds the pieces that were deliberately deferred:
 /// a timer (hard countdown + auto-submit for [ExamMode.official]/
-/// [ExamMode.mock], elapsed-time display for [ExamMode.practice] —
-/// today the only mode a session is ever created with, so the
-/// countdown path is exercised as soon as a mode picker exists, not
-/// dead code), the gated calculator ([ExamModel.calculatorType]),
+/// [ExamMode.mock], elapsed-time display for [ExamMode.practice]),
+/// the gated calculator ([ExamModel.calculatorType]),
 /// per-session option shuffling ([ExamModel.shuffleOptions]), and
 /// Submit — which scores the session via [scoreExamSession], writes
 /// the permanent [ExamAttemptModel], and hands off to
 /// [ExamResultScreen]. Still not here: the offline sync queue and
 /// proctoring — separate build slices with their own new
 /// dependencies.
+///
+/// Stage CBT-2 adds [mode] — the caller-supplied mode picker this
+/// comment used to describe as future work. The CBT Center's Official/
+/// Mock cards pass [ExamMode.official]/[ExamMode.mock]; every existing
+/// call site (WAEC/NECO/JAMB/University Post-UTME) doesn't pass one and
+/// keeps starting practice sessions exactly as before.
 class ExamRunnerScreen extends StatefulWidget {
   final ExamModel exam;
 
@@ -41,7 +45,22 @@ class ExamRunnerScreen extends StatefulWidget {
   /// spec section 15.
   final List<String>? questionIdsOverride;
 
-  const ExamRunnerScreen({super.key, required this.exam, this.questionIdsOverride});
+  /// Stage CBT-2 — the "mode picker" this class's own doc comment
+  /// anticipated. Only used when *creating* a new session; a resumed
+  /// session keeps whatever mode it was created with (a student can't
+  /// switch an in-progress official attempt to practice mid-way).
+  /// Defaults to [ExamMode.practice] so every existing call site
+  /// (WAEC/NECO/JAMB/University, none of which pass this) behaves
+  /// exactly as before — this widget's public behavior is unchanged
+  /// unless a caller opts in.
+  final ExamMode mode;
+
+  const ExamRunnerScreen({
+    super.key,
+    required this.exam,
+    this.questionIdsOverride,
+    this.mode = ExamMode.practice,
+  });
 
   @override
   State<ExamRunnerScreen> createState() => _ExamRunnerScreenState();
@@ -121,7 +140,11 @@ class _ExamRunnerScreenState extends State<ExamRunnerScreen> {
         }
       }
 
-      const mode = ExamMode.practice; // mode picker is separate scope; only mode reachable today
+      // Stage CBT-2: was `const mode = ExamMode.practice` — the runner's
+      // own doc comment called this "the mode picker" the day one
+      // existed. `widget.mode` defaults to practice, so every call site
+      // that doesn't pass one keeps today's exact behavior.
+      final mode = widget.mode;
       final now = DateTime.now();
       session = ExamSessionModel(
         sessionId: _sessionRepo.newId(),

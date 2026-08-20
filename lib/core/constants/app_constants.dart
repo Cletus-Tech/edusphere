@@ -87,6 +87,14 @@ class AppConstants {
   static const String dashboardSettingsDoc = 'dashboard';
   static const String appSettingsDoc = 'app_config';
   static const String uploadSettingsDoc = 'uploads';
+  // Stage CBT-3 — CBT Control Center. Global (not per-exam) CBT
+  // configuration: practice/mock availability, free/trial/premium
+  // attempt-limit defaults. Per-exam config (attemptLimit, isPremium,
+  // availableFrom/Until, supportedModes, etc.) already lives on
+  // ExamModel and stays there — this doc only holds settings that
+  // apply across exams, the same "settings/<name> singleton" pattern
+  // as branding/dashboard/app_config/uploads above.
+  static const String cbtSettingsDoc = 'cbt';
 
   // Stage 6.3 — Creator Profile ("About the Owner") module. Named
   // `creator_achievements`, not `achievements` — that collection

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../../shared/widgets/custom_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import 'app_settings/admin_app_settings_screen.dart';
 import 'academic_structure/academic_structure_screen.dart';
+import 'app_settings/admin_app_settings_screen.dart';
 import 'audit_log/audit_log_screen.dart';
+import 'cbt/cbt_control_center_screen.dart';
 import 'creator_profile/creator_profile_management_screen.dart';
-import 'exam_prep/exam_manager_screen.dart';
 import 'exam_prep/subject_manager_screen.dart';
 import 'learning_materials/admin_learning_materials_screen.dart';
 import 'moderation/moderation_screen.dart';
@@ -96,12 +96,12 @@ class AdminDashboardScreen extends StatelessWidget {
           _AdminModuleTile(
             icon: Icons.quiz_rounded,
             accent: AppColors.primaryBlue,
-            title: 'Exams',
-            description: 'Configure exams and questions for the CBT Engine — JAMB, WAEC, NECO, '
-                'university courses, and practice tests all share this.',
+            title: 'CBT Management',
+            description: 'The CBT Control Center — official/practice/mock exams, questions, '
+                'attempts, and platform-wide CBT settings, all in one place.',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ExamManagerScreen()),
+              MaterialPageRoute(builder: (_) => const CbtControlCenterScreen()),
             ),
           ),
           const SizedBox(height: 12),

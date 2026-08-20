@@ -35,7 +35,13 @@ class ExamListScreen extends StatelessWidget {
   final String examTypeId;
   final String title;
 
-  const ExamListScreen({super.key, required this.examTypeId, required this.title});
+  /// Stage CBT-2 — threaded straight through to [ExamRunnerScreen].
+  /// Defaults to [ExamMode.practice] so WAEC/NECO/JAMB/University
+  /// (none of which pass this) keep starting practice sessions exactly
+  /// as they did before this stage.
+  final ExamMode mode;
+
+  const ExamListScreen({super.key, required this.examTypeId, required this.title, this.mode = ExamMode.practice});
 
   Future<void> _startExam(BuildContext context, ExamModel exam) async {
     if (!exam.isCurrentlyAvailable) {
@@ -45,6 +51,19 @@ class ExamListScreen extends StatelessWidget {
               ? 'This exam closed on ${_formatDate(exam.availableUntil!)}.'
               : 'This exam is not currently available.';
       if (context.mounted) _showBlockedDialog(context, 'Exam unavailable', message);
+      return;
+    }
+
+    // Stage CBT-2: an exam can restrict which modes it's sittable
+    // under (ExamModel.supportedModes) — e.g. an exam authored as
+    // official-only shouldn't be startable from a practice entry
+    // point. Existing callers that don't pass `mode` default to
+    // `practice`, and every exam defaults `supportedModes` to all
+    // three, so this is a no-op for every pre-CBT-2 call site.
+    if (!exam.supportedModes.contains(mode)) {
+      if (context.mounted) {
+        _showBlockedDialog(context, 'Not available in this mode', 'This exam isn\'t offered as ${mode.id}.');
+      }
       return;
     }
 
@@ -74,7 +93,7 @@ class ExamListScreen extends StatelessWidget {
 
     if (context.mounted) {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ExamRunnerScreen(exam: exam)),
+        MaterialPageRoute(builder: (_) => ExamRunnerScreen(exam: exam, mode: mode)),
       );
     }
   }

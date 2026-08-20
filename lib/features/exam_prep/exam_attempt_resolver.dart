@@ -54,6 +54,19 @@ class ExamAttemptResolver {
     return matched;
   }
 
+  /// Every attempt whose exam has resolved, paired with that exam —
+  /// the unfiltered counterpart to [matchType]. Stage CBT-2's "My
+  /// Attempts" section spans every board/mode in one list, so it needs
+  /// the join without the type filter [ExamHistoryScreen] applies.
+  List<(ExamAttemptModel, ExamModel)> matchAll(Iterable<ExamAttemptModel> attempts) {
+    final matched = <(ExamAttemptModel, ExamModel)>[];
+    for (final attempt in attempts) {
+      final exam = _cache[attempt.examId];
+      if (exam != null) matched.add((attempt, exam));
+    }
+    return matched;
+  }
+
   /// True while at least one of [attempts]' exams hasn't resolved yet.
   bool isResolving(Iterable<ExamAttemptModel> attempts) =>
       attempts.any((attempt) => !_cache.containsKey(attempt.examId));

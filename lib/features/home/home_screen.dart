@@ -57,14 +57,14 @@ class HomeScreen extends StatelessWidget {
   };
 
   /// Keys with a real top-level route (registered in [AppRoutes]) but no
-  /// bottom-nav tab of their own. 'cbt' has no dashboard tile yet, but
-  /// is included so an admin-configured card with key `cbt` (see
-  /// `FeatureKeys.cbt`) resolves here instead of the "not available
-  /// yet" fallback. 'university' is Stage 4.4's real University
-  /// Dashboard. Everything still absent from both maps — marketplace,
-  /// scholarships, parents_portal, professional_exams — has no screen
-  /// at all yet, so it's told to the user honestly instead of
-  /// pretending to navigate.
+  /// bottom-nav tab of their own. 'cbt' now has a default fallback tile
+  /// too (Stage CBT-2 — see [_fallbackQuickAccess]) pointing at the
+  /// real CBT Center; an admin-configured card with key `cbt` (see
+  /// `FeatureKeys.cbt`) resolves here the same way. 'university' is
+  /// Stage 4.4's real University Dashboard. Everything still absent
+  /// from both maps — marketplace, scholarships, parents_portal,
+  /// professional_exams — has no screen at all yet, so it's told to
+  /// the user honestly instead of pretending to navigate.
   static const Map<String, String> _routeForKey = {
     'jamb': AppRoutes.jamb,
     'waec': AppRoutes.waec,
@@ -73,8 +73,15 @@ class HomeScreen extends StatelessWidget {
     'university': AppRoutes.university,
   };
 
+  // Stage CBT-2: 'cbt' added to the default fallback — `_openTile`
+  // already resolved this key correctly (via `_routeForKey`) before
+  // this change; it just wasn't offered as a tile until an admin
+  // configured a custom Firestore dashboard. This is the existing
+  // configurable architecture, not a Home redesign — one entry in an
+  // existing list.
   static const List<(String, IconData, Color)> _fallbackQuickAccess = [
     ('university', Icons.account_balance_rounded, AppColors.primaryBlue),
+    ('cbt', Icons.laptop_chromebook_rounded, AppColors.secondaryIndigo),
     ('jamb', Icons.assignment_rounded, AppColors.secondaryIndigo),
     ('waec', Icons.school_rounded, AppColors.accentGreen),
     ('neco', Icons.edit_document, AppColors.highlightOrange),
@@ -89,6 +96,7 @@ class HomeScreen extends StatelessWidget {
     'smart_toy': Icons.smart_toy_rounded,
     'groups': Icons.groups_rounded,
     'menu_book': Icons.menu_book_rounded,
+    'laptop_chromebook': Icons.laptop_chromebook_rounded,
   };
 
   void _openTile(BuildContext context, String key, {String? deepLink}) {

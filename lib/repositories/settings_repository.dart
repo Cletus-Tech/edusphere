@@ -122,4 +122,23 @@ class AppSettingsRepository {
       newValues: model.toMap(),
     );
   }
+
+  /// Stage CBT-3 — global CBT settings (`settings/cbt`). Same singleton
+  /// pattern as everything else in this class; see [CbtSettingsModel]'s
+  /// doc comment for what it does and doesn't control.
+  Stream<CbtSettingsModel> watchCbtSettings() {
+    return _settings.doc(AppConstants.cbtSettingsDoc).snapshots().map(
+          (snap) => snap.data() == null ? const CbtSettingsModel() : CbtSettingsModel.fromMap(snap.data()!),
+        );
+  }
+
+  Future<void> saveCbtSettings(CbtSettingsModel model, {CbtSettingsModel? previous}) async {
+    await _settings.doc(AppConstants.cbtSettingsDoc).set(model.toMap(), SetOptions(merge: true));
+    AuditLogService.instance.logSettingsChange(
+      targetId: AppConstants.cbtSettingsDoc,
+      targetTitle: 'CBT Settings',
+      previousValues: previous?.toMap(),
+      newValues: model.toMap(),
+    );
+  }
 }

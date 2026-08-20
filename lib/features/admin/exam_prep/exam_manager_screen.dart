@@ -22,7 +22,14 @@ import 'question_manager_screen.dart';
 /// exam in Firestore had to be hand-written. This screen (plus
 /// [ExamEditorScreen] and [QuestionManagerScreen]) closes that gap.
 class ExamManagerScreen extends StatefulWidget {
-  const ExamManagerScreen({super.key});
+  /// Stage CBT-3 — lets the CBT Control Center's Official/Practice/Mock
+  /// tiles reuse this exact screen pre-filtered instead of either
+  /// duplicating it three times or building three new list screens.
+  /// `null` (the default, and what every pre-CBT-3 call site passes)
+  /// keeps today's "All" behavior exactly as before.
+  final ExamType? initialTypeFilter;
+
+  const ExamManagerScreen({super.key, this.initialTypeFilter});
 
   @override
   State<ExamManagerScreen> createState() => _ExamManagerScreenState();
@@ -31,6 +38,12 @@ class ExamManagerScreen extends StatefulWidget {
 class _ExamManagerScreenState extends State<ExamManagerScreen> {
   final ExamRepository _repository = ExamRepository();
   ExamType? _typeFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _typeFilter = widget.initialTypeFilter;
+  }
 
   Future<void> _delete(ExamModel exam) async {
     final confirmed = await AppDialog.confirm(
@@ -59,13 +72,20 @@ class _ExamManagerScreenState extends State<ExamManagerScreen> {
     AppSnackbar.success(context, 'Exam deleted.');
   }
 
+  String _titleFor(ExamType? type) => switch (type) {
+        ExamType.cbt => 'Official Exams',
+        ExamType.practiceTest => 'Practice Exams',
+        ExamType.mockExam => 'Mock Exams',
+        _ => 'Exams',
+      };
+
   @override
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
     final bodyColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textSecondary;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Exams')),
+      appBar: AppBar(title: Text(_titleFor(widget.initialTypeFilter))),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,

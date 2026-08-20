@@ -356,6 +356,20 @@ class ExamAttemptRepository extends BaseRepository<ExamAttemptModel> {
       Failure() => const [],
     };
   }
+
+  /// Stage CBT-3 — every attempt across every user, most recent first.
+  /// Distinct from [watchHistoryForUser] (one user's own history): this
+  /// is the admin-wide view the CBT Control Center's Attempt
+  /// Management screen needs. `firestore.rules` already lets staff
+  /// read any `exam_attempts` doc (`resource.data.userId == uid() ||
+  /// isStaff()`), so this is safe for the admin screen that gates
+  /// access to this call.
+  Stream<List<ExamAttemptModel>> watchRecentForAdmin({int limit = 100}) {
+    return streamCollection(
+      query: (q) => q.orderBy('submittedAt', descending: true),
+      limit: limit,
+    );
+  }
 }
 
 class QuestionRepository extends BaseRepository<QuestionModel> {

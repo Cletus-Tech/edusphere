@@ -90,7 +90,7 @@ class WaecDashboardScreen extends StatelessWidget {
                         builder: (_) => const BoardExamSelectionScreen(
                           examType: ExamType.waec,
                           title: 'WAEC',
-                          accent: AppColors.accentTeal,
+                          accent: AppColors.accentGreen,
                           mode: ExamMode.mock,
                         ),
                       ),
@@ -105,7 +105,7 @@ class WaecDashboardScreen extends StatelessWidget {
                         builder: (_) => const BoardExamSelectionScreen(
                           examType: ExamType.waec,
                           title: 'WAEC',
-                          accent: AppColors.accentTeal,
+                          accent: AppColors.accentGreen,
                           mode: ExamMode.official,
                         ),
                       ),

@@ -165,3 +165,65 @@ verification only was performed and is reported above as such — this
 report does not and cannot claim `flutter analyze`, `flutter test`, or
 a successful build.** Runtime Flutter compilation and on-device
 verification remain required before this fix ships.
+
+---
+
+## Addendum — 2 pre-existing bugs caught by real CI, missed by static review
+
+Runtime verification (§ above) explicitly flagged that this report's
+static checks could not substitute for an actual compiler. That
+caveat turned out to matter: GitHub Actions' `flutter build apk
+--release` failed on push, and correctly caught **two pre-existing
+bugs** neither this report's checks nor the earlier system-wide audit
+found — both were in files this stage touched, but neither was
+introduced by this stage's edit (confirmed by checking that this
+stage's diff only added `mode:` arguments, never touched the affected
+lines/imports).
+
+1. **`AppColors.accentTeal` — never defined.** Used twice in
+   `waec_dashboard_screen.dart` (`BoardExamSelectionScreen`'s
+   `accent:` argument, both WAEC's Mock Exams and CBT tiles). The
+   actual palette (`app_colors.dart`) only defines `primaryBlue`,
+   `secondaryIndigo`, `accentGreen`, `highlightOrange`. Fixed by using
+   `AppColors.accentGreen` — WAEC's own established first-tile accent
+   in this same file, not a new color.
+
+2. **Missing import in `subject_combination_selection_screen.dart`.**
+   `SubjectRepository` is defined in `course_repository.dart`, but
+   this file only imported `learning_repository.dart`. Its sibling
+   `board_exam_selection_screen.dart` correctly imports both. Fixed by
+   adding the missing import line.
+
+**Why static review missed both**: this environment has no Flutter/
+Dart SDK, so "static verification" here meant regex-based checks
+(brace/paren balance, import-path-exists, duplicate-class-name scan)
+— none of which can catch "this identifier isn't actually defined" or
+"this symbol was used without being imported," since both require
+real symbol resolution, not text pattern matching.
+
+**What was done about it**: built two new targeted heuristic scripts
+after seeing the real compiler's output, specifically shaped to catch
+these two exact bug classes project-wide (not just in the two flagged
+files):
+- A "class used but not imported" scanner (maps every top-level class
+  to its defining file, then checks every file's usages against what
+  its own imports actually make available) — **0 further instances**
+  found project-wide.
+- An "undefined static member" scanner for `AppColors`/`AppTextStyles`/
+  `AppConstants`/etc. (first pass had a regex bug that missed
+  arrow-function-style static methods, producing 326 false positives;
+  corrected and re-run) — **0 further instances** found project-wide.
+
+Both scanners are heuristic, not a real compiler — they reduce the
+odds of this exact failure mode recurring but don't replace `flutter
+analyze`/`flutter build`. That distinction is stated here plainly
+rather than implied away.
+
+## Files modified (revised)
+
+Adding to the original files-modified table:
+
+| File | Change | Why |
+|---|---|---|
+| `lib/features/waec/waec_dashboard_screen.dart` | `AppColors.accentTeal` → `AppColors.accentGreen` (2 occurrences) | Pre-existing undefined member, caught by CI |
+| `lib/features/exam_prep/subject_combination_selection_screen.dart` | Added missing `import '../../repositories/course_repository.dart';` | Pre-existing missing import, caught by CI |

@@ -4,6 +4,7 @@ import '../../core/utils/subject_combination_validator.dart';
 import '../../models/combination_rule_model.dart';
 import '../../models/course_model.dart';
 import '../../repositories/combination_rule_repository.dart';
+import '../../repositories/course_repository.dart';
 import '../../repositories/learning_repository.dart';
 import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/primary_button.dart';

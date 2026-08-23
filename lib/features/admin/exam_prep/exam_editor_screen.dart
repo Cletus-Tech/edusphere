@@ -32,6 +32,8 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _courseIdController;
   late final TextEditingController _subjectIdController;
+  late final TextEditingController _yearController;
+  late final TextEditingController _paperController;
   late final TextEditingController _durationController;
   late final TextEditingController _totalQuestionsController;
   late final TextEditingController _passMarkController;
@@ -65,6 +67,8 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
     _titleController = TextEditingController(text: e?.title ?? '');
     _courseIdController = TextEditingController(text: e?.courseId ?? '');
     _subjectIdController = TextEditingController(text: e?.subjectId ?? '');
+    _yearController = TextEditingController(text: e?.year?.toString() ?? '');
+    _paperController = TextEditingController(text: e?.paper ?? '');
     _durationController = TextEditingController(text: (e?.durationMinutes ?? 60).toString());
     _totalQuestionsController = TextEditingController(text: (e?.totalQuestions ?? 0).toString());
     _passMarkController = TextEditingController(text: (e?.passMarkPercent ?? 50).toString());
@@ -95,6 +99,8 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
     _titleController.dispose();
     _courseIdController.dispose();
     _subjectIdController.dispose();
+    _yearController.dispose();
+    _paperController.dispose();
     _durationController.dispose();
     _totalQuestionsController.dispose();
     _passMarkController.dispose();
@@ -143,6 +149,8 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
       type: _type,
       courseId: _courseIdController.text.trim().isEmpty ? null : _courseIdController.text.trim(),
       subjectId: _subjectIdController.text.trim().isEmpty ? null : _subjectIdController.text.trim(),
+      year: _yearController.text.trim().isEmpty ? null : int.tryParse(_yearController.text.trim()),
+      paper: _paperController.text.trim().isEmpty ? null : _paperController.text.trim(),
       durationMinutes: int.tryParse(_durationController.text.trim()) ?? 60,
       totalQuestions: int.tryParse(_totalQuestionsController.text.trim()) ?? 0,
       passMarkPercent: int.tryParse(_passMarkController.text.trim()) ?? 50,
@@ -219,6 +227,15 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
               AppTextField(controller: _courseIdController, hintText: 'Course ID (optional)'),
               const SizedBox(height: 12),
               AppTextField(controller: _subjectIdController, hintText: 'Subject ID (optional)'),
+              const SizedBox(height: 12),
+              // Stage CBT-Refactor Phase 3 — only meaningful for board
+              // exams (WAEC/NECO), but harmless to leave visible for
+              // every type: an admin creating a JAMB/CBT/practice exam
+              // just leaves these blank, same as courseId/subjectId
+              // above for non-course exams.
+              AppTextField(controller: _yearController, hintText: 'Year, e.g. 2024 (WAEC/NECO only)'),
+              const SizedBox(height: 12),
+              AppTextField(controller: _paperController, hintText: 'Paper, e.g. Paper 1 (WAEC/NECO only)'),
               const SizedBox(height: 12),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,

@@ -151,7 +151,32 @@ class _QuestionImportSpec implements CsvImportSpec<QuestionModel> {
     final topic = fields.length > 6 ? fields[6].trim() : '';
     final points = fields.length > 7 ? int.tryParse(fields[7].trim()) ?? 1 : 1;
 
+    // Stage CBT-REFACTOR Phase 1 — this used to store `correctRaw`
+    // (raw option TEXT, e.g. "Abuja") directly into `correctAnswers`.
+    // The runner and scoring engine compare against a stringified
+    // option INDEX ("1"), not text — see `exam_scoring.dart`'s
+    // `_isAnswerCorrect` and `exam_runner_screen.dart`'s
+    // `_buildAnswerInput`, both unchanged by this fix since they were
+    // always right. Every bulk-imported choice/trueFalse question
+    // before this fix scored as permanently wrong regardless of what a
+    // student picked. `correctRaw` is still used for validation above
+    // (matching against option *text* is what a person authoring a
+    // CSV/JSON file actually writes) — only the stored value changed.
     final correctOptionIndex = isChoiceType ? options.indexOf(correctRaw.first) : 0;
+    final List<String> correctAnswers;
+    if (isChoiceType) {
+      // Safe: validation above already rejected any row where a
+      // correctRaw entry doesn't exactly match an option, so
+      // `indexOf` can't return -1 here.
+      correctAnswers = correctRaw.map((c) => options.indexOf(c).toString()).toList();
+    } else if (type == QuestionType.trueFalse) {
+      // "0" = True, "1" = False — matches the runner's
+      // `['True', 'False']` display order (see `_buildAnswerInput`),
+      // not an arbitrary choice made here.
+      correctAnswers = [correctRaw.first.toLowerCase() == 'true' ? '0' : '1'];
+    } else {
+      correctAnswers = correctRaw;
+    }
 
     return ImportRowResult.valid(
       rowNumber,
@@ -166,7 +191,7 @@ class _QuestionImportSpec implements CsvImportSpec<QuestionModel> {
         difficulty: difficulty,
         topic: topic.isEmpty ? null : topic,
         type: type,
-        correctAnswers: type == QuestionType.trueFalse ? [correctRaw.first.toLowerCase()] : correctRaw,
+        correctAnswers: correctAnswers,
         points: points,
       ),
     );

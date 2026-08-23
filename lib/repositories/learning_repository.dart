@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/constants/app_constants.dart';
 import '../core/constants/storage_paths.dart';
 import '../core/enums/audit_action_type.dart';
@@ -280,6 +281,48 @@ class ExamRepository extends BaseRepository<ExamModel> {
   Stream<List<ExamModel>> watchByType(String typeId) {
     return streamCollection(
       query: (q) => q.where('type', isEqualTo: typeId).where('isActive', isEqualTo: true),
+    );
+  }
+
+  /// Stage CBT-Refactor Phase 3 — additive alongside [watchByType]
+  /// rather than a replacement, since [watchByType] is still exactly
+  /// right for Official/Practice/Mock/JAMB/Post-UTME (none of which
+  /// have a year/subject/paper concept to filter by). This is the
+  /// server-side query [BoardExamSelectionScreen] needs so "only
+  /// exams matching the selected criteria" is enforced by the actual
+  /// Firestore query, not a client-side filter over every exam of a
+  /// type — per the refactor doc's Phase 8: "do not simply filter the
+  /// UI while loading unrelated exams behind the scenes."
+  ///
+  /// All three filter params are optional and independently
+  /// applicable so [ExamListScreen] can pass through only what a
+  /// student actually selected. [subjectIds] uses Firestore's
+  /// `whereIn` (max 30 values — well above any realistic JAMB/WAEC
+  /// subject-combination size).
+  ///
+  /// Known limitation (Stage CBT-Refactor Phase 14 verification):
+  /// combining `type` + `isActive` + `year` + `paper` + `subjectId`
+  /// range/whereIn filters requires a Firestore composite index.
+  /// This can't be created from application code — document as an
+  /// operational follow-up (deploy via `firestore.indexes.json` or
+  /// the console) rather than something this stage can verify at
+  /// runtime.
+  Stream<List<ExamModel>> watchByTypeWithFilters({
+    required String typeId,
+    List<String>? subjectIds,
+    int? year,
+    String? paper,
+  }) {
+    return streamCollection(
+      query: (q) {
+        Query<Map<String, dynamic>> filtered = q.where('type', isEqualTo: typeId).where('isActive', isEqualTo: true);
+        if (year != null) filtered = filtered.where('year', isEqualTo: year);
+        if (paper != null) filtered = filtered.where('paper', isEqualTo: paper);
+        if (subjectIds != null && subjectIds.isNotEmpty) {
+          filtered = filtered.where('subjectId', whereIn: subjectIds);
+        }
+        return filtered;
+      },
     );
   }
 }

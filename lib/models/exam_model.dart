@@ -16,12 +16,39 @@ import 'firestore_model.dart';
 /// attempts, always available, free, online-only), so every [ExamModel]
 /// document written before this stage decodes exactly as it did
 /// before — nothing here requires a data migration.
+/// Stage 4.8B adds navigation-rule fields (section 11 of that spec).
+/// Stage CBT-Refactor Phase 2B/3 adds [year]/[paper] for WAEC/NECO
+/// board selection — see their own doc comments for why they're real
+/// fields, not `metadata`.
 class ExamModel extends Equatable implements FirestoreModel {
   final String examId;
   final String title;
   final ExamType type;
   final String? courseId;
   final String? subjectId;
+
+  // --- Stage CBT-Refactor Phase 2B / Phase 3: WAEC/NECO board fields ----
+  // Per the Phase 1 audit, no field anywhere held these — real, first-
+  // class fields rather than stuffing them into `metadata`, matching
+  // how `courseId`/`subjectId` (an equally fundamental part of exam
+  // identity, not ad hoc data) are already modeled. Both nullable,
+  // default null, so every exam document written before this stage
+  // decodes unchanged and CBT/practice/mock/JAMB/Post-UTME exams
+  // (which have no year/paper concept) are simply never asked for one.
+  /// The board's examination year (e.g. 2024), as actually configured
+  /// on an exam by an admin — never inferred or defaulted to the
+  /// current year, since a wrong default here would silently point a
+  /// student at the wrong year's questions.
+  final int? year;
+  /// Free-text paper identifier (e.g. "Paper 1", "Objective",
+  /// "Essay") — deliberately a string, not an enum, since paper
+  /// naming isn't standardized across boards/subjects and the Phase 3
+  /// audit found no existing controlled vocabulary to enumerate
+  /// against. [BoardExamSelectionScreen] derives the *set* of paper
+  /// values students can pick from actual configured exams, so this
+  /// stays admin-controlled data rather than a hardcoded list.
+  final String? paper;
+
   final int durationMinutes;
   final int totalQuestions;
   final int passMarkPercent;
@@ -58,6 +85,8 @@ class ExamModel extends Equatable implements FirestoreModel {
     required this.type,
     this.courseId,
     this.subjectId,
+    this.year,
+    this.paper,
     this.durationMinutes = 60,
     this.totalQuestions = 0,
     this.passMarkPercent = 50,
@@ -89,6 +118,8 @@ class ExamModel extends Equatable implements FirestoreModel {
       type: ExamType.fromId(map['type'] as String? ?? ''),
       courseId: map['courseId'] as String?,
       subjectId: map['subjectId'] as String?,
+      year: map['year'] as int?,
+      paper: map['paper'] as String?,
       durationMinutes: map['durationMinutes'] as int? ?? 60,
       totalQuestions: map['totalQuestions'] as int? ?? 0,
       passMarkPercent: map['passMarkPercent'] as int? ?? 50,
@@ -122,6 +153,8 @@ class ExamModel extends Equatable implements FirestoreModel {
         'type': type.id,
         'courseId': courseId,
         'subjectId': subjectId,
+        'year': year,
+        'paper': paper,
         'durationMinutes': durationMinutes,
         'totalQuestions': totalQuestions,
         'passMarkPercent': passMarkPercent,

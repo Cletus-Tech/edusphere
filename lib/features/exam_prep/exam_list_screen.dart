@@ -32,6 +32,14 @@ import 'exam_runner_screen.dart';
 ///
 /// Generic like [SubjectBrowseScreen]: any future board (NECO, JAMB)
 /// reuses this with a different [examTypeId] instead of a copy.
+///
+/// Stage CBT-Refactor Phase 3 — gained optional [subjectIds]/[year]/
+/// [paper] filters so [BoardExamSelectionScreen]'s WAEC flow (and
+/// NECO's, reusing the same infrastructure per the refactor doc's
+/// Phase 4) can show only exams matching what a student actually
+/// selected, via a real server-side query
+/// ([ExamRepository.watchByTypeWithFilters]) rather than a
+/// client-side filter.
 class ExamListScreen extends StatelessWidget {
   final String examTypeId;
   final String title;
@@ -42,7 +50,30 @@ class ExamListScreen extends StatelessWidget {
   /// as they did before this stage.
   final ExamMode mode;
 
-  const ExamListScreen({super.key, required this.examTypeId, required this.title, this.mode = ExamMode.practice});
+  /// Stage CBT-Refactor Phase 3 — all three optional and null by
+  /// default, so every pre-existing call site (CbtScreen's
+  /// Official/Practice/Mock cards, and anywhere else this screen is
+  /// already used) is completely unaffected. When
+  /// [BoardExamSelectionScreen] passes any of these, the underlying
+  /// query switches from [ExamRepository.watchByType] to
+  /// [ExamRepository.watchByTypeWithFilters] so filtering happens in
+  /// the actual Firestore query, not client-side over every exam of
+  /// the type.
+  final List<String>? subjectIds;
+  final int? year;
+  final String? paper;
+
+  const ExamListScreen({
+    super.key,
+    required this.examTypeId,
+    required this.title,
+    this.mode = ExamMode.practice,
+    this.subjectIds,
+    this.year,
+    this.paper,
+  });
+
+  bool get _hasFilters => subjectIds != null || year != null || paper != null;
 
   Future<void> _startExam(BuildContext context, ExamModel exam) async {
     if (!exam.isCurrentlyAvailable) {
@@ -120,13 +151,25 @@ class ExamListScreen extends StatelessWidget {
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
         child: StreamBuilder<List<ExamModel>>(
-          stream: ExamRepository().watchByType(examTypeId),
+          stream: _hasFilters
+              ? ExamRepository().watchByTypeWithFilters(
+                  typeId: examTypeId,
+                  subjectIds: subjectIds,
+                  year: year,
+                  paper: paper,
+                )
+              : ExamRepository().watchByType(examTypeId),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) return const LoadingView();
             if (snapshot.hasError) return const ErrorView(message: 'Could not load exams right now.');
             final exams = snapshot.data ?? const <ExamModel>[];
             if (exams.isEmpty) {
-              return EmptyView(message: 'No $title have been added yet.', icon: Icons.quiz_outlined);
+              return EmptyView(
+                message: _hasFilters
+                    ? 'No exams match that selection yet.'
+                    : 'No $title have been added yet.',
+                icon: Icons.quiz_outlined,
+              );
             }
             return ListView.separated(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),

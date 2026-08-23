@@ -8,6 +8,7 @@ import '../../../shared/widgets/state_views.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../exam_prep/exam_manager_screen.dart';
+import '../exam_prep/question_data_repair_screen.dart';
 import 'cbt_attempt_management_screen.dart';
 import 'cbt_settings_screen.dart';
 
@@ -113,6 +114,18 @@ class CbtControlCenterScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const CbtSettingsScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _SectionTile(
+            icon: Icons.build_circle_outlined,
+            accent: AppColors.error,
+            title: 'Question Data Repair',
+            description: 'One-time migration for questions imported before the CBT-REFACTOR '
+                'Phase 1 scoring fix — scans, previews, and repairs on confirmation.',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const QuestionDataRepairScreen()),
             ),
           ),
         ],

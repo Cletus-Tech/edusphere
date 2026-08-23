@@ -224,17 +224,26 @@ class _QuestionEditorScreenState extends State<_QuestionEditorScreen> {
     _optionControllers = options.map((o) => TextEditingController(text: o)).toList();
 
     if (e != null && e.type == QuestionType.multipleChoice) {
-      _correctOptionIndexes = e.correctAnswers.map(int.parse).toSet();
+      // Defensive tryParse, not parse: a not-yet-migrated bulk-imported
+      // question (see Stage CBT-REFACTOR Phase 1) may still have option
+      // *text* here instead of an index — that shouldn't crash the
+      // editor, it should just show no correct answers pre-selected so
+      // the gap is visible rather than hidden behind an exception.
+      _correctOptionIndexes = e.correctAnswers.map(int.tryParse).whereType<int>().toSet();
     } else if (e != null && e.type == QuestionType.singleChoice) {
-      _correctOptionIndexes = {
-        e.correctAnswers.isNotEmpty ? int.parse(e.correctAnswers.first) : e.correctOptionIndex,
-      };
+      final parsed = e.correctAnswers.isNotEmpty ? int.tryParse(e.correctAnswers.first) : null;
+      _correctOptionIndexes = {parsed ?? e.correctOptionIndex};
     } else {
       _correctOptionIndexes = {0};
     }
 
     if (e != null && e.type == QuestionType.trueFalse) {
-      _trueFalseAnswer = e.correctAnswers.isNotEmpty ? e.correctAnswers.first == 'true' : true;
+      // Accepts both the new index format ("0"/"1") and the old,
+      // pre-Phase-1 literal text format ("true"/"false") so editing a
+      // not-yet-migrated question still shows the right value instead
+      // of silently defaulting to True.
+      final first = e.correctAnswers.isNotEmpty ? e.correctAnswers.first.toLowerCase() : '0';
+      _trueFalseAnswer = first == '0' || first == 'true';
     }
   }
 
@@ -285,7 +294,7 @@ class _QuestionEditorScreenState extends State<_QuestionEditorScreen> {
     final correctAnswers = switch (_type) {
       QuestionType.singleChoice || QuestionType.multipleChoice =>
         _correctOptionIndexes.map((i) => i.toString()).toList(),
-      QuestionType.trueFalse => [_trueFalseAnswer.toString()],
+      QuestionType.trueFalse => [_trueFalseAnswer ? '0' : '1'],
       QuestionType.fillInTheBlank || QuestionType.shortAnswer => _shortAnswerController.text
           .split(',')
           .map((s) => s.trim())

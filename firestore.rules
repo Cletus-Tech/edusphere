@@ -82,6 +82,11 @@ service cloud.firestore {
     // ---- courses, subjects, categories -----------------------------------
     match /courses/{id}    { allow read: if true; allow write: if isStaff(); }
     match /subjects/{id}   { allow read: if true; allow write: if isStaff(); }
+    // Stage CBT-Refactor Phase 5 — combination rules (compulsory
+    // subject + required count per category). Mirrors `subjects`'
+    // own read/write policy exactly rather than inventing a different
+    // access rule.
+    match /combination_rules/{id} { allow read: if true; allow write: if isStaff(); }
     match /categories/{id} { allow read: if true; allow write: if isAdmin(); }
 
     // ---- learning content (DEPRECATED — see LearningContentModel's ------

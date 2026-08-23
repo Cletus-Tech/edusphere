@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/enums/audit_action_type.dart';
 import '../../../core/utils/result.dart';
+import '../../../models/combination_rule_model.dart';
 import '../../../models/course_model.dart';
+import '../../../repositories/combination_rule_repository.dart';
 import '../../../repositories/course_repository.dart';
 import '../../../services/audit/audit_log_service.dart';
 import '../../../shared/dialogs/app_dialog.dart';
@@ -33,12 +35,97 @@ class SubjectManagerScreen extends StatefulWidget {
 
 class _SubjectManagerScreenState extends State<SubjectManagerScreen> {
   final SubjectRepository _repository = SubjectRepository();
+  final CombinationRuleRepository _ruleRepository = CombinationRuleRepository();
   late final Stream<List<CourseModel>> _stream;
 
   @override
   void initState() {
     super.initState();
     _stream = _repository.watchByCategory(widget.categoryId);
+  }
+
+  /// Stage CBT-Refactor Phase 5 — Part 7 admin control. Lets an admin
+  /// set the compulsory subject (e.g. "Use of English" for JAMB) and
+  /// required subject count for this category, rather than either
+  /// being hardcoded. Reuses this exact screen (where the category's
+  /// subjects already live) instead of a disconnected new admin
+  /// system, per the phase brief's Part 7 instruction.
+  Future<void> _openCombinationRuleDialog(List<CourseModel> subjects) async {
+    final currentRule = await _ruleRepository.watchForCategory(widget.categoryId).first;
+    if (!mounted) return;
+
+    String? selectedCompulsoryId = currentRule.compulsorySubjectId;
+    final countController = TextEditingController(text: '${currentRule.requiredSubjectCount}');
+    final formKey = GlobalKey<FormState>();
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Subject Combination Rule'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Controls the ${widget.categoryLabel} subject-selection flow students see '
+                    '(e.g. English locked + 3 more for JAMB).',
+                    style: AppTextStyles.bodySmall(AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String?>(
+                    value: selectedCompulsoryId,
+                    decoration: const InputDecoration(labelText: 'Compulsory subject (optional)'),
+                    items: [
+                      const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                      ...subjects.map((s) => DropdownMenuItem<String?>(value: s.courseId, child: Text(s.title))),
+                    ],
+                    onChanged: (v) => setDialogState(() => selectedCompulsoryId = v),
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    controller: countController,
+                    hintText: 'Required subject count (e.g. 4)',
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      final n = int.tryParse(v ?? '');
+                      if (n == null || n < 1) return 'Enter a whole number of 1 or more';
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) Navigator.pop(ctx, true);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (saved != true || !mounted) return;
+
+    final result = await _ruleRepository.setCompulsorySubject(
+      widget.categoryId,
+      selectedCompulsoryId,
+      requiredSubjectCount: int.parse(countController.text.trim()),
+    );
+    if (!mounted) return;
+    if (result case Failure(message: final m)) {
+      AppSnackbar.error(context, m);
+      return;
+    }
+    AppSnackbar.success(context, 'Combination rule updated.');
   }
 
   Future<void> _openForm({CourseModel? existing}) async {
@@ -137,6 +224,16 @@ class _SubjectManagerScreenState extends State<SubjectManagerScreen> {
     AppSnackbar.success(context, 'Subject deleted.');
   }
 
+  // Stage CBT-Refactor Phase 5 — helper for the combination-rule
+  // summary line above (`package:collection`'s `firstOrNull` isn't a
+  // dependency here, per this file's earlier precedent).
+  String _findTitle(List<CourseModel> subjects, String id) {
+    for (final s in subjects) {
+      if (s.courseId == id) return s.title;
+    }
+    return 'Unknown subject';
+  }
+
   @override
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary;
@@ -177,43 +274,95 @@ class _SubjectManagerScreenState extends State<SubjectManagerScreen> {
                     message: 'No ${widget.categoryLabel} subjects yet — tap + to add the first one.',
                   );
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 88),
-                  itemCount: subjects.length,
-                  itemBuilder: (context, i) {
-                    final subject = subjects[i];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: CustomCard(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(subject.title, style: AppTextStyles.titleMedium(textColor)),
-                                  if (subject.code.isNotEmpty)
-                                    Text(subject.code, style: AppTextStyles.bodySmall(bodyColor)),
-                                ],
+                return StreamBuilder<CombinationRuleModel>(
+                  stream: _ruleRepository.watchForCategory(widget.categoryId),
+                  builder: (context, ruleSnapshot) {
+                    final rule = ruleSnapshot.data ?? CombinationRuleModel(categoryId: widget.categoryId);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  rule.compulsorySubjectId == null
+                                      ? 'No combination rule set — required count: ${rule.requiredSubjectCount}'
+                                      : 'Compulsory: ${_findTitle(subjects, rule.compulsorySubjectId!)} · '
+                                          'Required: ${rule.requiredSubjectCount}',
+                                  style: AppTextStyles.bodySmall(bodyColor),
+                                ),
                               ),
-                            ),
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                switch (value) {
-                                  case 'edit':
-                                    _openForm(existing: subject);
-                                  case 'delete':
-                                    _delete(subject);
-                                }
-                              },
-                              itemBuilder: (context) => const [
-                                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                PopupMenuItem(value: 'delete', child: Text('Delete')),
-                              ],
-                            ),
-                          ],
+                              TextButton(
+                                onPressed: () => _openCombinationRuleDialog(subjects),
+                                child: const Text('Combination Rule'),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 88),
+                            itemCount: subjects.length,
+                            itemBuilder: (context, i) {
+                              final subject = subjects[i];
+                              final isCompulsory = subject.courseId == rule.compulsorySubjectId;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: CustomCard(
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(subject.title, style: AppTextStyles.titleMedium(textColor)),
+                                                if (isCompulsory) ...[
+                                                  const SizedBox(width: 8),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors.primaryBlue.withOpacity(0.12),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                    ),
+                                                    child: Text(
+                                                      'Compulsory',
+                                                      style: AppTextStyles.bodySmall(AppColors.primaryBlue),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                            if (subject.code.isNotEmpty)
+                                              Text(subject.code, style: AppTextStyles.bodySmall(bodyColor)),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuButton<String>(
+                                        onSelected: (value) {
+                                          switch (value) {
+                                            case 'edit':
+                                              _openForm(existing: subject);
+                                            case 'delete':
+                                              _delete(subject);
+                                          }
+                                        },
+                                        itemBuilder: (context) => const [
+                                          PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                          PopupMenuItem(value: 'delete', child: Text('Delete')),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     );
                   },
                 );

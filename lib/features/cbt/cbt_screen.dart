@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/enums/content_type.dart';
+import '../../core/routes/app_routes.dart';
 import '../../models/exam_model.dart';
 import '../../repositories/learning_repository.dart';
 import '../../services/firebase/auth_service.dart';
@@ -41,6 +42,30 @@ import 'my_attempts_screen.dart';
 /// defines (`cbt` = Official, `practiceTest` = Practice, `mockExam` =
 /// Mock) rather than inventing new ones — an admin creates exams under
 /// whichever type belongs in which section.
+///
+/// Stage CBT-REFACTOR Phase 2 — per the Phase 1 audit
+/// (`docs/STAGE_CBT-REFACTOR_PHASE2B_UNIFIED_SELECTION_AUDIT.md`),
+/// WAEC/NECO/JAMB/University all had their own direct entry points
+/// straight into [ExamListScreen], invisible to this "unified" center
+/// — so this wasn't actually unified. This stage adds WAEC/NECO/JAMB/
+/// Institutional cards, making this screen a real hub for every board.
+///
+/// Per the audit's explicit rule ("do NOT blindly create duplicate
+/// cards if the existing architecture already provides an equivalent
+/// route"): each board card navigates to that board's own existing
+/// dashboard (`WaecDashboardScreen`/`JambDashboardScreen`/
+/// `NecoDashboardScreen`/`UniversityDashboardScreen`) via its existing
+/// named route, rather than jumping straight to [ExamListScreen].
+/// Two reasons this is the correct Phase 2 scope, not a shortcut:
+/// (1) those dashboards already carry real board-specific context
+/// (subject cards, performance, history) beyond a bare exam list, so
+/// linking past them would be a regression, not a simplification; and
+/// (2) the actual Year → Subject → Paper / JAMB-combination selection
+/// flow the audit calls for doesn't exist yet — building it here would
+/// mean inventing it ad hoc instead of as its own audited phase
+/// (Phases 3–6 of the refactor doc). No new selection UI, no new
+/// exam-query filtering, and no changes to [ExamListScreen] or the
+/// scoring engine happen in this stage.
 class CbtScreen extends StatelessWidget {
   const CbtScreen({super.key});
 
@@ -115,6 +140,52 @@ class CbtScreen extends StatelessWidget {
                       mode: ExamMode.mock,
                     ),
                   ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Examination boards',
+                style: AppTextStyles.titleMedium(
+                  Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FeatureCard(
+                icon: Icons.school_outlined,
+                accent: AppColors.accentGreen,
+                title: 'WAEC',
+                description: 'West African Senior School Certificate practice and mocks.',
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.waec),
+              ),
+              const SizedBox(height: 12),
+              _FeatureCard(
+                icon: Icons.edit_document,
+                accent: AppColors.highlightOrange,
+                title: 'NECO',
+                description: 'National Examinations Council practice and mocks.',
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.neco),
+              ),
+              const SizedBox(height: 12),
+              _FeatureCard(
+                icon: Icons.assignment_outlined,
+                accent: AppColors.secondaryIndigo,
+                title: 'JAMB',
+                description: 'UTME subject-combination practice and mocks.',
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.jamb),
+              ),
+              const SizedBox(height: 12),
+              _FeatureCard(
+                icon: Icons.account_balance_outlined,
+                accent: AppColors.primaryBlue,
+                title: 'Institutional / Post-UTME',
+                description: 'Course-specific CBT set by your institution.',
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.university),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'More',
+                style: AppTextStyles.titleMedium(
+                  Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),

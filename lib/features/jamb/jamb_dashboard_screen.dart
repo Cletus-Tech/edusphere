@@ -10,10 +10,10 @@ import '../../shared/widgets/state_views.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../exam_prep/exam_history_screen.dart';
-import '../exam_prep/exam_list_screen.dart';
 import '../exam_prep/performance_analytics_screen.dart';
 import '../exam_prep/study_plan_placeholder_screen.dart';
 import '../exam_prep/subject_browse_screen.dart';
+import '../exam_prep/subject_combination_selection_screen.dart';
 import '../learn/learning_materials/material_detail_screen.dart';
 import '../learn/learning_materials/widgets/material_card.dart';
 import '../university/course_detail_screen.dart';
@@ -91,7 +91,13 @@ class JambDashboardScreen extends StatelessWidget {
                     label: 'CBT',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => ExamListScreen(examTypeId: ExamType.jamb.id, title: 'JAMB Mock Exams'),
+                        builder: (_) => const SubjectCombinationSelectionScreen(
+                          examType: ExamType.jamb,
+                          categoryId: _categoryId,
+                          title: 'JAMB',
+                          accent: AppColors.secondaryIndigo,
+                          mode: ExamMode.official,
+                        ),
                       ),
                     ),
                   ),
@@ -113,7 +119,13 @@ class JambDashboardScreen extends StatelessWidget {
                     label: 'Mock Exams',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => ExamListScreen(examTypeId: ExamType.jamb.id, title: 'JAMB Mock Exams'),
+                        builder: (_) => const SubjectCombinationSelectionScreen(
+                          examType: ExamType.jamb,
+                          categoryId: _categoryId,
+                          title: 'JAMB',
+                          accent: AppColors.primaryBlue,
+                          mode: ExamMode.mock,
+                        ),
                       ),
                     ),
                   ),

@@ -9,8 +9,8 @@ import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/state_views.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../exam_prep/board_exam_selection_screen.dart';
 import '../exam_prep/exam_history_screen.dart';
-import '../exam_prep/exam_list_screen.dart';
 import '../exam_prep/performance_analytics_screen.dart';
 import '../exam_prep/subject_browse_screen.dart';
 import '../learn/learning_materials/material_detail_screen.dart';
@@ -102,7 +102,12 @@ class NecoDashboardScreen extends StatelessWidget {
                     label: 'Mock Exams',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => ExamListScreen(examTypeId: ExamType.neco.id, title: 'NECO Mock Exams'),
+                        builder: (_) => const BoardExamSelectionScreen(
+                          examType: ExamType.neco,
+                          title: 'NECO',
+                          accent: AppColors.accentGreen,
+                          mode: ExamMode.mock,
+                        ),
                       ),
                     ),
                   ),
@@ -112,7 +117,12 @@ class NecoDashboardScreen extends StatelessWidget {
                     label: 'CBT',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => ExamListScreen(examTypeId: ExamType.neco.id, title: 'NECO Mock Exams'),
+                        builder: (_) => const BoardExamSelectionScreen(
+                          examType: ExamType.neco,
+                          title: 'NECO',
+                          accent: AppColors.accentGreen,
+                          mode: ExamMode.official,
+                        ),
                       ),
                     ),
                   ),

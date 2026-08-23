@@ -38,6 +38,11 @@ class AppConstants {
   static const String levelsCollection = 'levels';
   static const String semestersCollection = 'semesters';
   static const String subjectsCollection = 'subjects';
+  // Stage CBT-Refactor Phase 5 — one doc per categoryId (same string
+  // SubjectRepository.watchByCategory uses), holds the compulsory
+  // subject + required subject count for that category's combination
+  // rule.
+  static const String combinationRulesCollection = 'combination_rules';
 
   // Learning
   static const String learningContentCollection = 'learning_content';
